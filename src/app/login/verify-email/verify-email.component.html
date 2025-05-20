@@ -1,0 +1,32 @@
+<div class="container mt-5">
+    <div class="alert" [ngClass]="{'alert-info': !isVerified, 'alert-secondary': isVerified}">
+      <h4>{{ isVerified ? 'メール確認が完了しました' : 'メール確認が必要です' }}</h4>
+      <p *ngIf="!isVerified">
+        登録したメールアドレスに確認メールを送信しました。<br>
+        メール内のリンクをクリックして、登録を完了してください。<br>
+        自動的に確認を行います。しばらくお待ちください。<br>
+        <small class="text-muted">
+          ※この画面を閉じた場合や、5分以上経過した場合は、<br>
+          　ログイン画面から通常通りログインできます（メール確認が完了していれば）
+        </small>
+      </p>
+      <p *ngIf="isVerified">
+        メール確認が完了しました。ホーム画面に移動します。
+      </p>
+      <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+        {{ errorMessage }} 
+        <button class="btn btn-primary" (click)="goLogin()" [disabled]="isChecking">
+          ログイン画面に移動
+        </button>
+      </div>
+      <button class="btn btn-primary" (click)="checkVerification()" [disabled]="isChecking">
+        {{ isChecking ? '確認中...' : '確認する' }}
+      </button>
+    </div>
+    <div *ngIf="!companyName">
+      <label>会社名を再入力してください</label>
+      <input [(ngModel)]="inputCompanyName" class="form-control" />
+      <button (click)="onCompanyNameSubmit()" class="btn btn-primary mt-2">送信</button>
+      <div *ngIf="errorMessage" class="text-danger mt-2">{{errorMessage}}</div>
+    </div>
+  </div>

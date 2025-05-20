@@ -1,0 +1,81 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h3 class="mb-0">新規登録
+              <span *ngIf="registerType === 'company'">（会社用）</span>
+              <span *ngIf="registerType === 'employee'">（従業員用）</span>
+            </h3>
+          </div>
+          <div class="card-body">
+            <form (ngSubmit)="onSubmit()" [formGroup]="registerForm">
+              <div class="mb-3">
+                <label class="form-label">会社名</label>
+                <input type="text" class="form-control" formControlName="companyName" required [ngClass]="{'is-invalid': registerForm.get('companyName')?.invalid && registerForm.get('companyName')?.touched}">
+                <div *ngIf="registerForm.get('companyName')?.invalid && registerForm.get('companyName')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>会社名を正しく入力してください。
+                </div>
+              </div>
+              <div *ngIf="registerType === 'employee'" class="mb-3">
+                <label class="form-label">社員番号</label>
+                <input type="text" class="form-control" formControlName="employeeId" required [ngClass]="{'is-invalid': registerForm.get('employeeId')?.invalid && registerForm.get('employeeId')?.touched}">
+                <div *ngIf="registerForm.get('employeeId')?.invalid && registerForm.get('employeeId')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>社員番号を正しく入力してください。
+                </div>
+              </div>
+              <div *ngIf="registerType === 'employee'" class="mb-3">
+                <label class="form-label">氏名</label>
+                <input type="text" class="form-control" formControlName="displayName" required [ngClass]="{'is-invalid': registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched}">
+                <div *ngIf="registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>氏名を正しく入力してください。
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">メールアドレス</label>
+                <input type="email" class="form-control" formControlName="email" required [ngClass]="{'is-invalid': registerForm.get('email')?.invalid && registerForm.get('email')?.touched}">
+                <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>メールアドレスを正しく入力してください。
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">パスワード</label>
+                <input type="password" class="form-control" formControlName="password" required [ngClass]="{'is-invalid': registerForm.get('password')?.invalid && registerForm.get('password')?.touched}">
+                <div *ngIf="registerForm.get('password')?.errors?.['required'] && registerForm.get('password')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワードを入力してください。
+                </div>
+                <div *ngIf="registerForm.get('password')?.errors?.['minlength'] && registerForm.get('password')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワードは6文字以上で入力してください。
+                </div>
+                <div *ngIf="registerForm.get('password')?.errors?.['maxlength'] && registerForm.get('password')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワードは20文字以下で入力してください。
+                </div>
+                <div *ngIf="registerForm.get('password')?.errors?.['pattern'] && registerForm.get('password')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワードは英数字のみ、またはスペースのみ不可で入力してください。
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">パスワード（再確認）</label>
+                <input type="password" class="form-control" formControlName="confirmPassword" required [ngClass]="{'is-invalid': (registerForm.hasError('passwordsMismatch') && registerForm.get('confirmPassword')?.touched) || (registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched)}">
+                <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required'] && registerForm.get('confirmPassword')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワード（再確認）を入力してください。
+                </div>
+                <div *ngIf="registerForm.hasError('passwordsMismatch') && registerForm.get('confirmPassword')?.touched" class="text-danger">
+                  <span class="me-1">&#33;</span>パスワードと再確認用パスワードが一致しません。
+                </div>
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success" [disabled]="!registerForm.valid">登録</button>
+                <button type="button" class="btn btn-secondary" (click)="navigateToLogin()">
+                  ログイン画面に戻る
+                </button>
+              </div>
+              <div *ngIf="error" class="alert alert-danger mt-3">
+                {{error}}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,187 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">社会保険管理システム ログイン</h2>
+            
+            <!-- ログイン画面 -->
+            <div *ngIf="!showRegister && !showResetPass">
+              <!-- タブ切り替え -->
+              <ul class="nav nav-tabs mb-4 d-flex" id="loginTabs" role="tablist" style="border-bottom-width: 2px;">
+                <li class="nav-item flex-fill text-center p-0" role="presentation">
+                  <button class="nav-link active w-100" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" aria-controls="company" aria-selected="false" style="border-radius: 0;">会社用ログイン</button>
+                </li>
+                <li class="nav-item flex-fill text-center p-0" role="presentation">
+                  <button class="nav-link w-100" id="employee-tab" data-bs-toggle="tab" data-bs-target="#employee" type="button" role="tab" aria-controls="employee" aria-selected="true" style="border-radius: 0;">従業員用ログイン</button>
+                </li>
+              </ul>
+
+              <!-- タブコンテンツ -->
+              <div class="tab-content" id="loginTabsContent">
+                <!-- 会社用ログインフォーム -->
+                <div class="tab-pane fade show active" id="company" role="tabpanel" aria-labelledby="company-tab">
+                  <form [formGroup]="companyLoginForm" (ngSubmit)="onCompanySubmit()">
+                    <div class="mb-3">
+                      <label for="companyName" class="form-label">会社名</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="companyName"
+                        formControlName="companyName"
+                        [ngClass]="{'is-invalid': companyLoginForm.get('companyName')?.invalid && companyLoginForm.get('companyName')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('companyName')?.errors?.['required']">
+                        会社名を入力してください
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="companyEmail" class="form-label">メールアドレス</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="companyEmail"
+                        formControlName="email"
+                        [ngClass]="{'is-invalid': companyLoginForm.get('email')?.invalid && companyLoginForm.get('email')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('email')?.errors?.['required']">
+                        メールアドレスを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('email')?.errors?.['email']">
+                        有効なメールアドレスを入力してください
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="companyPassword" class="form-label">パスワード</label>
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="companyPassword"
+                        formControlName="password"
+                        [ngClass]="{'is-invalid': companyLoginForm.get('password')?.invalid && companyLoginForm.get('password')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('password')?.errors?.['required']">
+                        パスワードを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('password')?.errors?.['minlength']">
+                        パスワードは6文字以上で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('password')?.errors?.['maxlength']">
+                        パスワードは20文字以下で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="companyLoginForm.get('password')?.errors?.['pattern']">
+                        パスワードは英数字のみで入力してください
+                      </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                      <button
+                        type="submit"
+                        class="btn btn-primary"
+                        [disabled]="companyLoginForm.invalid || isLoading"
+                      >
+                        {{ isLoading ? 'ログイン中...' : 'ログイン' }}
+                      </button>
+                    </div>
+                  </form>
+                  <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-secondary" (click)="openRegister('company')">
+                      新規登録はこちら
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 従業員用ログインフォーム -->
+                <div class="tab-pane fade" id="employee" role="tabpanel" aria-labelledby="employee-tab">
+                  <form [formGroup]="employeeLoginForm" (ngSubmit)="onEmployeeSubmit()">
+                    <div class="mb-3">
+                      <label for="employeeCompanyName" class="form-label">会社名</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="employeeCompanyName"
+                        formControlName="companyName"
+                        [ngClass]="{'is-invalid': employeeLoginForm.get('companyName')?.invalid && employeeLoginForm.get('companyName')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('companyName')?.errors?.['required']">
+                        会社名を入力してください
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="employeeEmail" class="form-label">メールアドレス</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="employeeEmail"
+                        formControlName="email"
+                        [ngClass]="{'is-invalid': employeeLoginForm.get('email')?.invalid && employeeLoginForm.get('email')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('email')?.errors?.['required']">
+                        メールアドレスを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('email')?.errors?.['email']">
+                        正しいメールアドレス形式で入力してください
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="employeePassword" class="form-label">パスワード</label>
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="employeePassword"
+                        formControlName="password"
+                        [ngClass]="{'is-invalid': employeeLoginForm.get('password')?.invalid && employeeLoginForm.get('password')?.touched}"
+                      >
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('password')?.errors?.['required']">
+                        パスワードを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('password')?.errors?.['minlength']">
+                        パスワードは6文字以上で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('password')?.errors?.['maxlength']">
+                        パスワードは20文字以下で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="employeeLoginForm.get('password')?.errors?.['pattern']">
+                        パスワードは英数字のみで入力してください
+                      </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                      <button
+                        type="submit"
+                        class="btn btn-primary"
+                        [disabled]="employeeLoginForm.invalid || isLoading"
+                      >
+                        {{ isLoading ? 'ログイン中...' : 'ログイン' }}
+                      </button>
+                    </div>
+                  </form>
+                  <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-secondary" (click)="openRegister('employee')">
+                      新規登録はこちら
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 新規登録画面 -->
+            <div *ngIf="showRegister">
+              <app-register [registerType]="registerType" (backToLogin)="closeRegister()"></app-register>
+            </div>
+
+            <!-- パスワードリセット画面 -->
+            <div *ngIf="showResetPass">
+              <app-reset-pass (backToLogin)="closeResetPass()"></app-reset-pass>
+            </div>
+
+            <div class="d-grid gap-2 mt-3" *ngIf="!showRegister && !showResetPass">
+              <button type="button" class="btn btn-link" (click)="openResetPass()">
+                パスワードを忘れた方はこちら
+              </button>
+            </div>
+            <div *ngIf="successMessage" class="alert alert-success mt-3">
+              {{successMessage}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> 
