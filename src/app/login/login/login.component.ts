@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { ResetPassComponent } from '../reset-pass/reset-pass.component';
 import { UserService } from '../../services/user.service';
 import { NavigationService } from '../../services/navigation.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +30,8 @@ export class LoginComponent {
     private router: Router,
     private authService: AuthService,
     private userService: UserService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private toastr: ToastrService
   ) {
     this.companyLoginForm = this.fb.group({
       companyName: ['', Validators.required],
@@ -59,22 +61,29 @@ export class LoginComponent {
       this.isLoading = true;
       try {
         const companyName = this.companyLoginForm.value.companyName;
+        const email = this.companyLoginForm.value.email;
         const companyId = await this.userService.getCompanyIdByName(companyName);
         if (!companyId) {
-          alert('会社名が見つかりません');
+          this.toastr.error('会社名が見つかりません');
           this.isLoading = false;
           return;
         }
 
-        await this.authService.login(
-          this.companyLoginForm.value.email,
-          this.companyLoginForm.value.password
-        );
+        // 会社のメールアドレスとして登録されているか確認
+        const companyProfile = await this.userService.getCompanyProfile(companyId);
+        if (!companyProfile || companyProfile.companyEmail !== email) {
+          this.toastr.error('このメールアドレスは会社のメールアドレスとして登録されていません');
+          this.isLoading = false;
+          return;
+        }
+
+        await this.authService.login(email, this.companyLoginForm.value.password);
         this.successMessage = 'ログイン成功';
+        this.toastr.success('ログイン成功');
         this.navigationService.goToCompanyHome(companyId);
       } catch (error: any) {
         this.successMessage = '';
-        alert('ログインに失敗しました: ' + error.message);
+        this.toastr.error('ログインに失敗しました: ' + error.message);
       }
       this.isLoading = false;
     }
@@ -90,24 +99,33 @@ export class LoginComponent {
 
         const companyId = await this.userService.getCompanyIdByName(companyName);
         if (!companyId) {
-          alert('会社名が見つかりません');
+          this.toastr.error('会社名が見つかりません');
+          this.isLoading = false;
+          return;
+        }
+
+        // 会社のメールアドレスとして登録されていないか確認
+        const companyProfile = await this.userService.getCompanyProfile(companyId);
+        if (companyProfile && companyProfile.companyEmail === email) {
+          this.toastr.error('このメールアドレスは会社のメールアドレスです。会社ログインを使用してください');
           this.isLoading = false;
           return;
         }
 
         const employeeId = await this.userService.getEmployeeIdByEmail(companyId, email);
         if (!employeeId) {
-          alert('従業員が見つかりません');
+          this.toastr.error('従業員が見つかりません');
           this.isLoading = false;
           return;
         }
 
         await this.authService.login(email, password);
         this.successMessage = 'ログイン成功';
+        this.toastr.success('ログイン成功');
         this.navigationService.goToEmployeeHome(companyId, employeeId);
       } catch (error: any) {
         this.successMessage = '';
-        alert('ログインに失敗しました: ' + error.message);
+        this.toastr.error('ログインに失敗しました: ' + error.message);
       }
       this.isLoading = false;
     }

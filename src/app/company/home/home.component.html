@@ -43,23 +43,23 @@
           <h5 class="card-title">メニュー</h5>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
-              <a href="#" class="text-decoration-none fw-bold">事業所情報管理</a>
-              <div class="small text-muted">事業所情報の閲覧・登録・変更はこちらから</div>
+              <a class="text-decoration-none fw-bold" (click)="goOfficeList()" style="cursor: pointer;">事業所情報管理</a>
+              <div class="small text-muted">事業所の情報管理はこちらから</div>
             </li>
             <li class="list-group-item">
-              <a href="#" class="text-decoration-none fw-bold">従業員情報管理</a>
+              <a class="text-decoration-none fw-bold" (click)="goRegisterEmployee()" style="cursor: pointer;">従業員情報管理</a>
               <div class="small text-muted">従業員の情報管理はこちらから</div>
             </li>
             <li class="list-group-item">
-              <a href="#" class="text-decoration-none fw-bold">権限管理</a>
+              <a class="text-decoration-none fw-bold" style="cursor: pointer;">権限管理</a>
               <div class="small text-muted">管理者・承認者権限の閲覧・設定はこちらから</div>
             </li>
             <li class="list-group-item">
-              <a href="#" class="text-decoration-none fw-bold">基本設定</a>
+              <a class="text-decoration-none fw-bold" style="cursor: pointer;">基本設定</a>
               <div class="small text-muted">賞与回数等の設定はこちらから</div>
             </li>
             <li class="list-group-item">
-              <a href="#" class="text-decoration-none fw-bold">監査ログ</a>
+              <a class="text-decoration-none fw-bold" style="cursor: pointer;">監査ログ</a>
               <div class="small text-muted">監査ログの閲覧はこちらから</div>
             </li>
           </ul>

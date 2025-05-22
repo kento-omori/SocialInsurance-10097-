@@ -1,0 +1,24 @@
+.offices-list.hover{
+    cursor: pointer;
+    background-color: #f0f0f094;
+}
+
+.offices-list .card {
+  transition: all 0.3s ease;
+}
+
+.offices-list .card:hover {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.offices-list .card .card-body {
+  padding: 1rem;
+}
+
+.offices-list .card .badge {
+  font-size: 0.9rem;
+  padding: 0.5rem 0.8rem;
+}

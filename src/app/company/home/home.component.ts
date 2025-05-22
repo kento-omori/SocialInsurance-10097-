@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { NavigationService } from '../../services/navigation.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RouteParamService } from '../../services/route-param.service';
 
 @Component({
   selector: 'app-home',
@@ -18,14 +19,13 @@ export class HomeComponent implements OnInit {
   constructor(
     private userService: UserService,
     private navigationService: NavigationService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private routeParamService: RouteParamService,
+    private router: Router
   ) {}
 
   async ngOnInit() {
-    // ルートパラメータからcompanyIdを取得
-    this.companyId = this.route.snapshot.paramMap.get('companyId') || '';
-
-    // 会社情報を取得
+    this.companyId = this.routeParamService.setCompanyId(this.route);
     const company = await this.userService.getCompanyProfile(this.companyId);
     if (company) {
       this.companyName = company.companyName;
@@ -39,5 +39,13 @@ export class HomeComponent implements OnInit {
 
   goHome() {
     this.navigationService.goToCompanyHome(this.companyId);
+  }
+
+  goOfficeList() {
+    this.router.navigate(['/companies', this.companyId, 'office-list']);
+  }
+
+  goRegisterEmployee() {
+    this.router.navigate(['/companies', this.companyId, 'register-employee']);
   }
 }

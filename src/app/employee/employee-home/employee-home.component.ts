@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavigationService } from '../../services/navigation.service';
 import { UserService, EmployeeProfile } from '../../services/user.service';
+import { RouteParamService } from '../../services/route-param.service';
 
 @Component({
   selector: 'app-employee-home',
@@ -10,24 +11,30 @@ import { UserService, EmployeeProfile } from '../../services/user.service';
   templateUrl: './employee-home.component.html',
   styleUrl: './employee-home.component.css'
 })
-export class EmployeeHomeComponent {
+export class EmployeeHomeComponent implements OnInit {
   companyId: string = '';
   employeeId: string = '';
   employeeName: string = '';
   employeeEmail: string = '';
+  companyName: string = '';
 
-  constructor(private navigationService: NavigationService, private route: ActivatedRoute, private userService: UserService) {
-  }
+  constructor(
+    private navigationService: NavigationService,
+    private route: ActivatedRoute, 
+    private userService: UserService,
+    private routeParamService: RouteParamService
+  ) {}
 
-  ngOnInit() {
-    this.companyId = this.route.snapshot.params['companyId'];
-    this.employeeId = this.route.snapshot.params['employeeId'];
-    console.log(this.companyId, this.employeeId);
-    this.userService.getEmployeeProfile(this.companyId, this.employeeId).then((employeeProfile) => {
-      this.employeeName = employeeProfile?.employeeName || '';
-      this.employeeId = employeeProfile?.employeeId || '';
-      this.employeeEmail = employeeProfile?.employeeEmail || '';
-    });
+  async ngOnInit() {
+    this.companyId = this.routeParamService.setCompanyId(this.route);
+    this.employeeId = this.routeParamService.setEmployeeId(this.route);
+    const employeeProfile = await this.userService.getEmployeeProfile(this.companyId, this.employeeId);
+    if (employeeProfile) {
+      this.employeeName = employeeProfile.employeeName;
+      this.employeeId = employeeProfile.employeeId;
+      this.employeeEmail = employeeProfile.employeeEmail || '';
+      this.companyName = employeeProfile.companyName;
+    }
   }
 
   goToEmployeeHome() {
@@ -37,6 +44,4 @@ export class EmployeeHomeComponent {
   goToLogin() {
     this.navigationService.goToLogin();
   }
-
-
 }

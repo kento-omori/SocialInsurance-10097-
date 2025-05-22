@@ -105,14 +105,18 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
             localStorage.removeItem('companyName');
             return;
           }
-          const userProfile: EmployeeProfile = {
+          const userProfile: EmployeeProfile = {　　　　　　　　　　　　　　　//ここに注意！register-employeeコンポーネントで登録されたデータが上書きされないようにする
             employeeId: localStorage.getItem('employeeId') || '',
             employeeName: localStorage.getItem('employeeName') || '',
             employeeEmail: user.email!,
             companyId: companyId,
+            companyName: companyName,
+            employeeAttribute: '',
+            insuredStatus: [],
+            enrolmentData: true,
             createdAt: new Date()
           };
-          this.employeeId = user.uid;
+          this.employeeId = localStorage.getItem('employeeId') || '';
           await this.userService.createEmployeeProfile(companyId, userProfile);
         }
         console.log('プロフィールの保存が完了しました');

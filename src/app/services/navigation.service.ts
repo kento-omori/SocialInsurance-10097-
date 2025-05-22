@@ -22,4 +22,8 @@ export class NavigationService {
   goToEmployeeHome(companyId: string, employeeId: string) {
     this.router.navigate([`/companies/${companyId}/employee-home/${employeeId}`]);
   }
+
+  goToOfficeList(companyId: string) {
+    this.router.navigate([`/companies/${companyId}/office-list`]);
+  }
 } 

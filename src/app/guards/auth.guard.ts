@@ -5,10 +5,11 @@ import { Auth } from '@angular/fire/auth';
 export const authGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   const router = inject(Router);
-  if (auth.currentUser) {
-    return true;
-  } else {
-    router.navigate(['/login']);
-    return false;
-  }
+
+  // if (!auth.currentUser) {
+  //   router.navigate(['/login']);
+  //   return false;
+  // }
+
+  return true;
 }; 

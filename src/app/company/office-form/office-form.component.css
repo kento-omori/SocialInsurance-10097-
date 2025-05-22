@@ -1,0 +1,10 @@
+.force-break {
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.ng-select.ng-select-multiple .ng-select-container .ng-placeholder {
+    display: none;
+  }

@@ -1,0 +1,51 @@
+<div class="container-fluid mt-5 min-vh-100">
+  <div class="row">
+    <!-- 左サイドバー（縦長カード） -->
+    <div class="col-md-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title fs-3">{{ companyName }} - 事業所一覧</h5>
+          <button class="btn btn-outline-primary mt-3 mb-3 col-md-12" (click)="showForm = true">事業所を新規登録する</button>
+
+          <!-- 事業所一覧 -->
+          <div class="offices-list">
+            <div class="card mb-3" *ngFor="let office of offices" 
+                 (click)="onOfficeSelected(office)"
+                 style="cursor: pointer;">
+              <div class="card-body">
+                <div class="d-flex align-items-center">
+                  <span class="badge me-4" [ngClass]="{
+                    'bg-danger': office.branchSelect === '本店',
+                    'bg-primary': office.branchSelect === '支店'
+                  }">
+                    {{ office.branchSelect }} ({{ office.prefecture }})
+                  </span>
+                  <h5 class="card-title mb-0" style="font-weight: bold;">{{ office.officeName }}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ul class="list-group list-group-flush mt-3">
+            <li class="list-group-item">
+              <a class="text-decoration-none fw-bold" style="cursor: pointer;" (click)="goHome()">会社ホームページに戻る</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央・右：事業所登録フォーム -->
+    <div class="col-md-8">
+      <app-office-form 
+        *ngIf="showForm" 
+        [office]="selectedOffice"
+        [isViewMode]="isViewMode"
+        (officeAdded)="onOfficeAdded($event)"
+        (officeUpdated)="onOfficeUpdated($event)"
+        (officeDeleted)="onOfficeDeleted($event)"
+        (close)="closeForm()">
+      </app-office-form>
+    </div>
+  </div>
+</div>

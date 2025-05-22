@@ -21,19 +21,12 @@ export class AuthService {
   // 新規登録（メール認証送信とルーティングを含む）
   async register(email: string, password: string): Promise<void> {
     try {
-      console.log('Starting registration process...');
       // ユーザー登録
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      console.log('User registered successfully:', userCredential.user.email);
-      
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);      
       // メール認証送信
       await sendEmailVerification(userCredential.user);
-      console.log('Verification email sent successfully');
-      
       // verify-emailコンポーネントへ遷移
-      console.log('Attempting to navigate to verify-email...');
       await this.router.navigate(['/verify-email']);
-      console.log('Navigation completed');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;

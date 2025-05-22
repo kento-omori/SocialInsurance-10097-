@@ -1,0 +1,614 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center" 
+          [ngClass]="{
+            'bg-success-subtle text-black': !isViewMode && !office?.id,
+            'bg-warning-subtle text-black': !isViewMode && office?.id
+          }">
+          <h5 class="mb-0">{{ isViewMode ? '事業所詳細' : (office?.id ? '事業所情報編集' : '事業所登録') }}</h5>
+          <div class="d-flex gap-2">
+            <button *ngIf="isViewMode" class="btn btn-warning" (click)="onEdit()">内容を修正</button>
+            <button *ngIf="isViewMode" class="btn btn-danger" (click)="onDelete()">事業所を削除</button>
+            <button class="btn" [ngClass]="{'btn-secondary': isViewMode, 'btn-light': !isViewMode}" (click)="close.emit()">閉じる</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- エラーメッセージ -->
+          <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+            {{ errorMessage }}
+          </div>
+
+          <form class="row g-2 p-4 bg-white rounded shadow-sm" [formGroup]="officeForm" (ngSubmit)="onSubmit()">
+  <!-- 事業所情報 -->
+    <div class="col-md-12 mb-3">
+      <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-building"></i> 事業所情報</h5>
+    </div>
+    <div class="col-md-6">
+                <label class="form-label">事業所整理番号 <span class="text-danger">*</span></label>
+        <div class="input-group">
+                    <input type="text" class="form-control" maxlength="4" placeholder="0000" formControlName="officeCode1" [ngClass]="{'is-invalid': officeForm.get('officeCode1')?.invalid && officeForm.get('officeCode1')?.touched}">
+            <span class="input-group-text">-</span>
+                    <input type="text" class="form-control" maxlength="4" placeholder="0000" formControlName="officeCode2" [ngClass]="{'is-invalid': officeForm.get('officeCode2')?.invalid && officeForm.get('officeCode2')?.touched}">
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeCode1')?.errors?.['required'] && officeForm.get('officeCode1')?.touched">
+                  事業所整理番号（前半）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeCode1')?.errors?.['pattern'] && officeForm.get('officeCode1')?.touched">
+                  事業所整理番号（前半）は1～4文字の数字、漢字、ひらがな、カタカナで入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeCode2')?.errors?.['required'] && officeForm.get('officeCode2')?.touched">
+                  事業所整理番号（後半）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeCode2')?.errors?.['pattern'] && officeForm.get('officeCode2')?.touched">
+                  事業所整理番号（後半）は1～4文字の数字、漢字、ひらがな、カタカナで入力してください
+        </div>
+    </div>
+    <div class="col-md-6">
+                <label class="form-label">事業所番号 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" maxlength="5" placeholder="00000" formControlName="officeNumber" [ngClass]="{'is-invalid': officeForm.get('officeNumber')?.invalid && officeForm.get('officeNumber')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeNumber')?.errors?.['required'] && officeForm.get('officeNumber')?.touched">
+                  事業所番号を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeNumber')?.errors?.['pattern'] && officeForm.get('officeNumber')?.touched">
+                  事業所番号は5桁の半角数字で入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-4">
+                <label class="form-label">郵便番号 <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa fa-map-marker"></i></span>
+                    <input type="text" class="form-control" placeholder="123" formControlName="postalCode1" [ngClass]="{'is-invalid': officeForm.get('postalCode1')?.invalid && officeForm.get('postalCode1')?.touched}">
+            <span class="input-group-text">-</span>
+                    <input type="text" class="form-control" placeholder="4567" formControlName="postalCode2" [ngClass]="{'is-invalid': officeForm.get('postalCode2')?.invalid && officeForm.get('postalCode2')?.touched}">
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('postalCode1')?.errors?.['required'] && officeForm.get('postalCode1')?.touched">
+                  郵便番号（前半）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('postalCode1')?.errors?.['pattern'] && officeForm.get('postalCode1')?.touched">
+                  郵便番号（前半）は3桁の半角数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('postalCode2')?.errors?.['required'] && officeForm.get('postalCode2')?.touched">
+                  郵便番号（後半）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('postalCode2')?.errors?.['pattern'] && officeForm.get('postalCode2')?.touched">
+                  郵便番号（後半）は4桁の半角数字で入力してください
+        </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-8">
+                <label class="form-label">住所 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="address" [ngClass]="{'is-invalid': officeForm.get('address')?.invalid && officeForm.get('address')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('address')?.errors?.['required'] && officeForm.get('address')?.touched">
+                  住所を入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-8">
+                <label class="form-label">住所フリガナ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="addressKana" [ngClass]="{'is-invalid': officeForm.get('addressKana')?.invalid && officeForm.get('addressKana')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('addressKana')?.errors?.['required'] && officeForm.get('addressKana')?.touched">
+                  住所フリガナを入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('addressKana')?.errors?.['pattern'] && officeForm.get('addressKana')?.touched">
+                  住所フリガナはカタカナ、半角数字、半角ハイフン、スペース、英語で入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-6">
+                <label class="form-label">事業所名称 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="officeName" [ngClass]="{'is-invalid': officeForm.get('officeName')?.invalid && officeForm.get('officeName')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeName')?.errors?.['required'] && officeForm.get('officeName')?.touched">
+                  事業所名称を入力してください
+                </div>
+    </div>
+    <div class="col-md-6">
+                <label class="form-label">事業所名称フリガナ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="officeNameKana" [ngClass]="{'is-invalid': officeForm.get('officeNameKana')?.invalid && officeForm.get('officeNameKana')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeNameKana')?.errors?.['required'] && officeForm.get('officeNameKana')?.touched">
+                  事業所名称フリガナを入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('officeNameKana')?.errors?.['pattern'] && officeForm.get('officeNameKana')?.touched">
+                  事業所名称フリガナはカタカナ、半角数字、半角ハイフン、スペース、英語で入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-6">
+                <label class="form-label">電話番号 <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa fa-phone"></i></span>
+                    <input type="text" class="form-control" placeholder="03" formControlName="phone1" [ngClass]="{'is-invalid': officeForm.get('phone1')?.invalid && officeForm.get('phone1')?.touched}">
+            <span class="input-group-text">-</span>
+                    <input type="text" class="form-control" placeholder="4567" formControlName="phone2" [ngClass]="{'is-invalid': officeForm.get('phone2')?.invalid && officeForm.get('phone2')?.touched}">
+            <span class="input-group-text">-</span>
+                    <input type="text" class="form-control" placeholder="8901" formControlName="phone3" [ngClass]="{'is-invalid': officeForm.get('phone3')?.invalid && officeForm.get('phone3')?.touched}">
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone1')?.errors?.['required'] && officeForm.get('phone1')?.touched">
+                  電話番号（市外局番）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone1')?.errors?.['pattern'] && officeForm.get('phone1')?.touched">
+                  電話番号（市外局番）は2～4桁の半角数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone2')?.errors?.['required'] && officeForm.get('phone2')?.touched">
+                  電話番号（市内局番）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone2')?.errors?.['pattern'] && officeForm.get('phone2')?.touched">
+                  電話番号（市内局番）は3～4桁の半角数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone3')?.errors?.['required'] && officeForm.get('phone3')?.touched">
+                  電話番号（加入者番号）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('phone3')?.errors?.['pattern'] && officeForm.get('phone3')?.touched">
+                  電話番号（加入者番号）は4桁の半角数字で入力してください
+        </div>
+    </div>
+
+  <!-- 事業主情報 -->
+            <div class="col-12 mt-4 mt-5 mb-3">
+      <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-user"></i> 事業主情報・担当者情報</h5>
+    </div>
+    <div class="col-md-3">
+              <label class="form-label">氏 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="ownerLastName" placeholder="氏" formControlName="ownerLastName" [ngClass]="{'is-invalid': officeForm.get('ownerLastName')?.invalid && officeForm.get('ownerLastName')?.touched}">
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerLastName')?.errors?.['required'] && officeForm.get('ownerLastName')?.touched">
+                氏を入力してください
+              </div>
+    </div>
+    <div class="col-md-3">
+              <label class="form-label">名 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="ownerFirstName" placeholder="名" formControlName="ownerFirstName" [ngClass]="{'is-invalid': officeForm.get('ownerFirstName')?.invalid && officeForm.get('ownerFirstName')?.touched}">
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerFirstName')?.errors?.['required'] && officeForm.get('ownerFirstName')?.touched">
+                名を入力してください
+              </div>
+    </div>
+    <div class="col-md-3">
+              <label class="form-label">氏フリガナ <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="ownerLastKana" placeholder="氏フリガナ" formControlName="ownerLastKana" [ngClass]="{'is-invalid': officeForm.get('ownerLastKana')?.invalid && officeForm.get('ownerLastKana')?.touched}">
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerLastKana')?.errors?.['required'] && officeForm.get('ownerLastKana')?.touched">
+                氏フリガナを入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerLastKana')?.errors?.['pattern'] && officeForm.get('ownerLastKana')?.touched">
+                氏フリガナはカタカナで入力してください
+              </div>
+    </div>
+    <div class="col-md-3">
+              <label class="form-label">名フリガナ <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="ownerFirstKana" placeholder="名フリガナ" formControlName="ownerFirstKana" [ngClass]="{'is-invalid': officeForm.get('ownerFirstKana')?.invalid && officeForm.get('ownerFirstKana')?.touched}">
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerFirstKana')?.errors?.['required'] && officeForm.get('ownerFirstKana')?.touched">
+                名フリガナを入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerFirstKana')?.errors?.['pattern'] && officeForm.get('ownerFirstKana')?.touched">
+                名フリガナはカタカナで入力してください
+              </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-4">
+              <label class="form-label">郵便番号 <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <span class="input-group-text"><i class="fa fa-map-marker"></i></span>
+                <input type="text" class="form-control" placeholder="123" formControlName="ownerPostalCode1" [ngClass]="{'is-invalid': officeForm.get('ownerPostalCode1')?.invalid && officeForm.get('ownerPostalCode1')?.touched}">
+            <span class="input-group-text">-</span>
+                <input type="text" class="form-control" placeholder="4567" formControlName="ownerPostalCode2" [ngClass]="{'is-invalid': officeForm.get('ownerPostalCode2')?.invalid && officeForm.get('ownerPostalCode2')?.touched}">
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerPostalCode1')?.errors?.['required'] && officeForm.get('ownerPostalCode1')?.touched">
+                郵便番号（前半）を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerPostalCode1')?.errors?.['pattern'] && officeForm.get('ownerPostalCode1')?.touched">
+                郵便番号（前半）は3桁の半角数字で入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerPostalCode2')?.errors?.['required'] && officeForm.get('ownerPostalCode2')?.touched">
+                郵便番号（後半）を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('ownerPostalCode2')?.errors?.['pattern'] && officeForm.get('ownerPostalCode2')?.touched">
+                郵便番号（後半）は4桁の半角数字で入力してください
+        </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-8">
+                <label class="form-label">住所 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="ownerAddress" [ngClass]="{'is-invalid': officeForm.get('ownerAddress')?.invalid && officeForm.get('ownerAddress')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('ownerAddress')?.errors?.['required'] && officeForm.get('ownerAddress')?.touched">
+                  住所を入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-8">
+                <label class="form-label">住所フリガナ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="ownerAddressKana" [ngClass]="{'is-invalid': officeForm.get('ownerAddressKana')?.invalid && officeForm.get('ownerAddressKana')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('ownerAddressKana')?.errors?.['required'] && officeForm.get('ownerAddressKana')?.touched">
+                  住所フリガナを入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('ownerAddressKana')?.errors?.['pattern'] && officeForm.get('ownerAddressKana')?.touched">
+                  住所フリガナはカタカナ、半角数字、半角ハイフン、スペース、英語で入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-6">
+                <label class="form-label">問合せ先担当者名 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="contactName" placeholder="担当者名" formControlName="contactName" [ngClass]="{'is-invalid': officeForm.get('contactName')?.invalid && officeForm.get('contactName')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('contactName')?.errors?.['required'] && officeForm.get('contactName')?.touched">
+                  問合せ先担当者名を入力してください
+                </div>
+    </div>
+    <div class="col-md-6">
+                <label class="form-label">内線番号（または電話番号） <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="contactPhone" placeholder="0000" formControlName="contactPhone" [ngClass]="{'is-invalid': officeForm.get('contactPhone')?.invalid && officeForm.get('contactPhone')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('contactPhone')?.errors?.['required'] && officeForm.get('contactPhone')?.touched">
+                  内線番号（または電話番号）を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('contactPhone')?.errors?.['pattern'] && officeForm.get('contactPhone')?.touched">
+                  内線番号（または電話番号）は半角数字で入力してください
+    </div>
+    </div>
+
+<!-- 法人情報・給与形態 -->
+            <div class="col-12 mt-5 mb-3">
+      <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-building"></i> 法人情報</h5>
+    </div>
+    <div class="col-md-2">
+              <label class="form-label">業態区分 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="industryType" formControlName="industryType" [ngClass]="{'is-invalid': officeForm.get('industryType')?.invalid && officeForm.get('industryType')?.touched}">
+              <div class="invalid-feedback" *ngIf="officeForm.get('industryType')?.errors?.['required'] && officeForm.get('industryType')?.touched">
+                業態区分を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('industryType')?.errors?.['pattern'] && officeForm.get('industryType')?.touched">
+                2桁の半角数字で入力してください
+              </div>
+    </div>
+    <div class="col-md-4">
+                <label class="form-label">事業の種類 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="businessType" formControlName="businessType" [ngClass]="{'is-invalid': officeForm.get('businessType')?.invalid && officeForm.get('businessType')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('businessType')?.errors?.['required'] && officeForm.get('businessType')?.touched">
+                  事業の種類を入力してください
+                </div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">事業の種類（業態区分）分類表</label><br>
+        <a
+          href="https://www.nenkin.go.jp/shinsei/kounen/tekiyo/jigyosho/20141205.files/bunrui041001.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline-primary btn-sm mt-1"
+        >
+          こちらから確認（日本年金機構 PDF）
+        </a>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-4">
+              <label class="form-label">個人法人区分 <span class="text-danger">*</span></label>
+              <select class="form-select" id="typeSelect" formControlName="typeSelect" [ngClass]="{'is-invalid': officeForm.get('typeSelect')?.invalid && officeForm.get('typeSelect')?.touched}">
+                <option value="">選択してください</option>
+                <option value="法人事務所">法人事務所</option>
+                <option value="個人事業所">個人事業所</option>
+                <option value="国・地方公共団体">国・地方公共団体</option>
+      </select>
+              <div class="invalid-feedback" *ngIf="officeForm.get('typeSelect')?.errors?.['required'] && officeForm.get('typeSelect')?.touched">
+                個人法人区分を選択してください
+              </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-4">
+                <label class="form-label">法人番号等 <span class="text-danger">*</span></label>
+                <select class="form-select" id="businessNumberSelect" formControlName="businessNumberSelect" [ngClass]="{'is-invalid': officeForm.get('businessNumberSelect')?.invalid && officeForm.get('businessNumberSelect')?.touched}">
+                  <option value="">選択してください</option>
+                  <option value="法人番号">法人番号</option>
+                  <option value="会社法人等番号">会社法人等番号</option>
+        </select>
+                <div class="invalid-feedback" *ngIf="officeForm.get('businessNumberSelect')?.errors?.['required'] && officeForm.get('businessNumberSelect')?.touched">
+                  法人番号等の種類を選択してください
+                </div>
+    </div>
+    <div class="col-md-8">
+                <label class="form-label">法人番号等 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="businessNumber" formControlName="businessNumber" [ngClass]="{'is-invalid': officeForm.get('businessNumber')?.invalid && officeForm.get('businessNumber')?.touched}">
+                <div class="invalid-feedback" *ngIf="officeForm.get('businessNumber')?.errors?.['required'] && officeForm.get('businessNumber')?.touched">
+                  法人番号等を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="officeForm.get('businessNumber')?.errors?.['pattern'] && officeForm.get('businessNumber')?.touched">
+                  法人番号等は12桁または13桁の半角数字で入力してください
+                </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-6">
+                <label class="form-label">本店・支店区分 <span class="text-danger">*</span></label>
+                <select class="form-select" id="branchSelect" formControlName="branchSelect" [ngClass]="{'is-invalid': officeForm.get('branchSelect')?.invalid && officeForm.get('branchSelect')?.touched}">
+                  <option value="">選択してください</option>
+                  <option value="本店">本店</option>
+                  <option value="支店">支店</option>
+        </select>
+                <div class="invalid-feedback" *ngIf="officeForm.get('branchSelect')?.errors?.['required'] && officeForm.get('branchSelect')?.touched">
+                  本店・支店区分を選択してください
+                </div>
+    </div>
+    <div class="col-md-6">
+                <label class="form-label">内・外国区分 <span class="text-danger">*</span></label>
+                <select class="form-select" id="foreignSelect" formControlName="foreignSelect" [ngClass]="{'is-invalid': officeForm.get('foreignSelect')?.invalid && officeForm.get('foreignSelect')?.touched}">
+                  <option value="">選択してください</option>
+                  <option value="内国法人">内国法人</option>
+                  <option value="外国法人">外国法人</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="officeForm.get('foreignSelect')?.errors?.['required'] && officeForm.get('foreignSelect')?.touched">
+                  内・外国区分を選択してください
+                </div>
+            </div>
+            <div class="col-md-6" *ngIf="officeForm.get('branchSelect')?.value === '支店'">
+              <label class="form-label">一括適用承認の有無 <span class="text-danger">*</span></label>
+              <select class="form-select" id="bulkApprovalType" formControlName="bulkApprovalType" [ngClass]="{'is-invalid': officeForm.get('bulkApprovalType')?.invalid && officeForm.get('bulkApprovalType')?.touched}">
+                <option value="">選択してください</option>
+                <option value="一括適用承認">一括適用承認</option>
+                <option value="事業所単位">事業所単位</option>
+        </select>
+              <div class="invalid-feedback" *ngIf="officeForm.get('bulkApprovalType')?.errors?.['required'] && officeForm.get('bulkApprovalType')?.touched">
+                一括適用承認の有無を選択してください
+    </div>
+    </div>
+
+  <!-- 給与関係 -->
+            <div class="col-12 mt-5 mb-3">
+      <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-money"></i> 給与関係</h5>
+    </div>
+    <div class="col-md-6">
+              <label class="form-label">給与計算の締切日 <span class="text-danger">*</span></label>
+              <select class="form-select" formControlName="closingDate" [ngClass]="{'is-invalid': officeForm.get('closingDate')?.invalid && officeForm.get('closingDate')?.touched}">
+        <option value="" disabled selected>選択してください</option>
+        <option *ngFor="let d of [].constructor(31); let i = index" [value]="i+1">{{i+1}}日</option>
+      </select>
+              <div class="invalid-feedback" *ngIf="officeForm.get('closingDate')?.errors?.['required'] && officeForm.get('closingDate')?.touched">
+                給与計算の締切日を選択してください
+              </div>
+    </div>
+            <div class="col-md-6">
+              <label class="form-label">給与支払い日 <span class="text-danger">*</span></label>
+      <div class="d-flex">
+                <select class="form-select me-2" id="paydaySelect" formControlName="paydayMonth" [ngClass]="{'is-invalid': officeForm.get('paydayMonth')?.invalid && officeForm.get('paydayMonth')?.touched}" style="max-width: 120px;">
+                  <option value="">選択</option>
+                  <option value="当月">当月</option>
+                  <option value="翌月">翌月</option>
+        </select>
+                <select class="form-select" formControlName="paydayDate" [ngClass]="{'is-invalid': officeForm.get('paydayDate')?.invalid && officeForm.get('paydayDate')?.touched}" style="max-width: 240px;">
+          <option value="" disabled selected>選択してください</option>
+          <option *ngFor="let d of [].constructor(31); let i = index" [value]="i+1">{{i+1}}日</option>
+        </select>
+      </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('paydayMonth')?.errors?.['required'] && officeForm.get('paydayMonth')?.touched">
+                選択してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('paydayDate')?.errors?.['required'] && officeForm.get('paydayDate')?.touched">
+                選択してください
+              </div>
+    </div>
+    <div class="force-break"></div>
+            <div class="col-md-6 mb-3">
+      <label class="form-label">昇給月（最大4つまで選択可）</label>
+              <select class="form-select" multiple size="4" formControlName="selectedMonths" [ngClass]="{'is-invalid': officeForm.get('selectedMonths')?.invalid && officeForm.get('selectedMonths')?.touched}">
+        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{m}}月</option>
+      </select>
+      <div class="form-text">Ctrl（Cmd）キーを押しながら選択で複数選択できます</div>
+              <div class="form-text" *ngIf="officeForm.get('selectedMonths')?.value?.length > 0">
+                選択中: {{officeForm.get('selectedMonths')?.value?.join('月, ')}}月
+      </div>
+              <div class="form-text text-danger" *ngIf="officeForm.get('selectedMonths')?.value?.length > 4">
+        4つまでしか選択できません
+      </div>
+    </div>
+            <div class="col-md-6 mb-3">
+        <label class="form-label">賞与支払予定月（最大4つまで選択可）</label>
+              <select class="form-select" multiple size="4" formControlName="selectedBonusMonths" [ngClass]="{'is-invalid': officeForm.get('selectedBonusMonths')?.invalid && officeForm.get('selectedBonusMonths')?.touched}">
+          <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{m}}月</option>
+        </select>
+        <div class="form-text">Ctrl（Cmd）キーを押しながら選択で複数選択できます</div>
+              <div class="form-text" *ngIf="officeForm.get('selectedBonusMonths')?.value?.length > 0">
+                選択中: {{officeForm.get('selectedBonusMonths')?.value?.join('月, ')}}月
+        </div>
+              <div class="form-text text-danger" *ngIf="officeForm.get('selectedBonusMonths')?.value?.length > 4">
+          4つまでしか選択できません
+        </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="bg-light rounded p-3 mb-3 border">
+              <label class="form-label">給与形態（複数選択可） <span class="text-danger">*</span></label>
+      <div class="d-flex flex-wrap gap-3">
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="monthly" id="salaryType1" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'monthly')" 
+                    [disabled]="isViewMode"
+                    [ngClass]="{'is-invalid': officeForm.get('salaryTypes')?.invalid && officeForm.get('salaryTypes')?.touched}">
+          <label class="form-check-label" for="salaryType1">月給</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="daily" id="salaryType2" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'daily')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType2">日給</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="daily_monthly" id="salaryType3" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'daily_monthly')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType3">日給月給</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="commission" id="salaryType4" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'commission')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType4">歩合給</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="hourly" id="salaryType5" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'hourly')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType5">時間給</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="annual" id="salaryType6" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'annual')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType6">年俸制</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="other" id="salaryType7" 
+                    (change)="onCheckboxChange($event, 'salaryTypes')" 
+                    [checked]="isChecked('salaryTypes', 'other')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="salaryType7">その他</label>
+        </div>
+      </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('salaryTypes')?.errors?.['required'] && officeForm.get('salaryTypes')?.touched">
+                給与形態を1つ以上選択してください
+              </div>
+              <div class="mt-2" *ngIf="isChecked('salaryTypes', 'other')">
+                <input type="text" class="form-control" placeholder="その他の給与形態を入力してください" formControlName="otherSalaryType" [disabled]="isViewMode">
+      </div>
+    </div>
+    <div class="force-break"></div>
+    
+    <div class="bg-light rounded p-3 mb-3 border">
+              <label class="form-label">諸手当の種類（複数選択可）</label>
+      <div class="d-flex flex-wrap gap-3">
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="family" id="allowanceType1" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'family')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType1">家族手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="housing" id="allowanceType2" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'housing')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType2">住宅手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="position" id="allowanceType3" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'position')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType3">役付手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="commuting" id="allowanceType4" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'commuting')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType4">通勤手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="attendance" id="allowanceType5" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'attendance')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType5">精勤手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="overtime" id="allowanceType6" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'overtime')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType6">残業手当</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="other" id="allowanceType7" 
+                    (change)="onCheckboxChange($event, 'allowanceTypes')" 
+                    [checked]="isChecked('allowanceTypes', 'other')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="allowanceType7">その他</label>
+        </div>
+      </div>
+              <div class="mt-2" *ngIf="isChecked('allowanceTypes', 'other')">
+                <input type="text" class="form-control" placeholder="その他の諸手当を入力してください" formControlName="otherAllowanceType" [disabled]="isViewMode">
+      </div>
+    </div>
+    <div class="force-break"></div>
+
+    <div class="bg-light rounded p-3 mb-3 border">
+              <label class="form-label">現物給与の種類（複数選択可）</label>
+      <div class="d-flex flex-wrap gap-3">
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="meal" id="inKindType1" 
+                    (change)="onCheckboxChange($event, 'inKindTypes')" 
+                    [checked]="isChecked('inKindTypes', 'meal')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="inKindType1">食事</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="housing" id="inKindType2" 
+                    (change)="onCheckboxChange($event, 'inKindTypes')" 
+                    [checked]="isChecked('inKindTypes', 'housing')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="inKindType2">住宅</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="clothing" id="inKindType3" 
+                    (change)="onCheckboxChange($event, 'inKindTypes')" 
+                    [checked]="isChecked('inKindTypes', 'clothing')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="inKindType3">被服</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="commuter_pass" id="inKindType4" 
+                    (change)="onCheckboxChange($event, 'inKindTypes')" 
+                    [checked]="isChecked('inKindTypes', 'commuter_pass')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="inKindType4">定期券</label>
+        </div>
+        <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="other" id="inKindType5" 
+                    (change)="onCheckboxChange($event, 'inKindTypes')" 
+                    [checked]="isChecked('inKindTypes', 'other')"
+                    [disabled]="isViewMode">
+          <label class="form-check-label" for="inKindType5">その他</label>
+        </div>
+      </div>
+              <div class="mt-2" *ngIf="isChecked('inKindTypes', 'other')">
+                <input type="text" class="form-control" placeholder="その他の現物給与を入力してください" formControlName="otherInKindType" [disabled]="isViewMode">
+      </div>
+    </div>
+    <div class="force-break"></div>
+    <div class="col-md-12">
+              <label class="form-label">所定労働時間・日数 <span class="text-danger">*</span></label>
+      <div class="input-group">
+        <span class="input-group-text">１月</span>
+                <input type="text" class="form-control text-end" formControlName="monthlyLaborDays" [ngClass]="{'is-invalid': officeForm.get('monthlyLaborDays')?.invalid && officeForm.get('monthlyLaborDays')?.touched}" pattern="\d{1,2}" inputmode="numeric" minlength="1" maxlength="2" placeholder="日数">
+        <span class="input-group-text">日　・　１週</span>
+                <input type="text" class="form-control text-end" formControlName="weeklyLaborHours" [ngClass]="{'is-invalid': officeForm.get('weeklyLaborHours')?.invalid && officeForm.get('weeklyLaborHours')?.touched}" pattern="\d{1,2}" inputmode="numeric" minlength="1" maxlength="2" placeholder="時間">
+        <span class="input-group-text">時間</span>
+                <input type="text" class="form-control text-end" formControlName="weeklyLaborMinutes" [ngClass]="{'is-invalid': officeForm.get('weeklyLaborMinutes')?.invalid && officeForm.get('weeklyLaborMinutes')?.touched}" pattern="\d{1,2}" inputmode="numeric" minlength="1" maxlength="2" placeholder="分">
+        <span class="input-group-text">分</span>
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('monthlyLaborDays')?.errors?.['required'] && officeForm.get('monthlyLaborDays')?.touched">
+                月間労働日数を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('monthlyLaborDays')?.errors?.['pattern'] && officeForm.get('monthlyLaborDays')?.touched">
+                1～31の間で入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('weeklyLaborHours')?.errors?.['required'] && officeForm.get('weeklyLaborHours')?.touched">
+                週間労働時間を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('weeklyLaborHours')?.errors?.['pattern'] && officeForm.get('weeklyLaborHours')?.touched">
+                0～168の間で入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('weeklyLaborMinutes')?.errors?.['required'] && officeForm.get('weeklyLaborMinutes')?.touched">
+                週間労働分を入力してください
+              </div>
+              <div class="invalid-feedback" *ngIf="officeForm.get('weeklyLaborMinutes')?.errors?.['pattern'] && officeForm.get('weeklyLaborMinutes')?.touched">
+                0～59の間で入力してください
+              </div>
+            </div>
+            <div class="col-12 d-flex justify-content-end mt-4">
+              <button type="submit" class="btn btn-success px-4 shadow" [disabled]="!officeForm.valid">登録</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
