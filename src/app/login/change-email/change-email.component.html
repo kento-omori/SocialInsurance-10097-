@@ -1,0 +1,28 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+                <div class="d-flex justify-content-between">
+                    <h4 class="mb-3">メールアドレスの変更</h4>
+                    <button type="button" class="btn btn-secondary mb-3" (click)="goToLogin()">ログイン画面に戻る</button>
+                </div>
+            </div>
+            <div class="alert alert-info">
+              変更するメールアドレスを入力してください。<br>
+              変更前のメールアドレスに確認メールを送付します。メールの変更を取りやめる場合は、メールのURLをクリックしてください。
+            </div>
+            <form [formGroup]="changeEmailForm" (ngSubmit)="onChangeEmail()">
+              <div class="mb-3">
+                <label for="email" class="form-label">新しいメールアドレス</label>
+                <input type="email" class="form-control" id="email" formControlName="email" required>
+              </div>
+              <button type="submit" class="btn btn-primary">送信</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  

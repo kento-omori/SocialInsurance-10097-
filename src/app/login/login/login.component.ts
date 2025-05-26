@@ -1,18 +1,16 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { RegisterComponent } from '../register/register.component';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { ResetPassComponent } from '../reset-pass/reset-pass.component';
 import { UserService } from '../../services/user.service';
-import { NavigationService } from '../../services/navigation.service';
+import { RouteParamService } from '../../services/route-param.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RegisterComponent, ResetPassComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -21,17 +19,19 @@ export class LoginComponent {
   employeeLoginForm: FormGroup;
   isLoading = false;
   successMessage = '';
+  errorMessage = '';
   showRegister = false;
   registerType: 'company' | 'employee' = 'company';
   showResetPass = false;
+  activeTab: 'company' | 'employee' = 'company';
 
   constructor(
     private fb: FormBuilder,
-    private router: Router,
     private authService: AuthService,
     private userService: UserService,
-    private navigationService: NavigationService,
-    private toastr: ToastrService
+    private routeParamService: RouteParamService,
+    private toastr: ToastrService,
+    private router: Router
   ) {
     this.companyLoginForm = this.fb.group({
       companyName: ['', Validators.required],
@@ -56,6 +56,10 @@ export class LoginComponent {
     });
   }
 
+  setActiveTab(tab: 'company' | 'employee') {
+    this.activeTab = tab;
+  }
+
   async onCompanySubmit() {
     if (this.companyLoginForm.valid) {
       this.isLoading = true;
@@ -78,9 +82,10 @@ export class LoginComponent {
         }
 
         await this.authService.login(email, this.companyLoginForm.value.password);
+        console.log(email,this.companyLoginForm.value.password);
         this.successMessage = 'ログイン成功';
         this.toastr.success('ログイン成功');
-        this.navigationService.goToCompanyHome(companyId);
+        this.router.navigate([`/companies/${companyId}/home`]);
       } catch (error: any) {
         this.successMessage = '';
         this.toastr.error('ログインに失敗しました: ' + error.message);
@@ -122,7 +127,7 @@ export class LoginComponent {
         await this.authService.login(email, password);
         this.successMessage = 'ログイン成功';
         this.toastr.success('ログイン成功');
-        this.navigationService.goToEmployeeHome(companyId, employeeId);
+        this.router.navigate([`/companies/${companyId}/employee-home/${employeeId}`]);
       } catch (error: any) {
         this.successMessage = '';
         this.toastr.error('ログインに失敗しました: ' + error.message);
@@ -131,25 +136,86 @@ export class LoginComponent {
     }
   }
 
-  openRegister(type: 'company' | 'employee') {
-    this.registerType = type;
-    this.showRegister = true;
-  }
+  async resetPassword() {
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  async closeRegister() {
+    let email = '';
+    let loginCompanyName = '';
+    
+    if (this.activeTab === 'company') {
+      loginCompanyName = this.companyLoginForm.get('companyName')?.value;
+      email = this.companyLoginForm.get('email')?.value;
+    } else {
+      loginCompanyName = this.employeeLoginForm.get('companyName')?.value;
+      email = this.employeeLoginForm.get('email')?.value;
+    }
+
+    if (!email) {
+      this.toastr.error('パスワードリセットのためにメールアドレスを入力してください。');
+      return;
+    }
+    email = email.trim().toLowerCase();
+
+    if(!loginCompanyName) {
+      this.toastr.error('パスワードリセットのために会社名を入力してください。');
+      return;
+    }
+
+    // 1. Authに存在するか
+    const exists = await this.authService.isEmailRegistered(email);
+    if (!exists) {
+      this.toastr.error('このメールアドレスは登録されていません。');
+      return;
+    }
+
+    // 2. 会社用 or 従業員用かを判定
+    let isCompany = false;
+    let isEmployee = false;
+
+    // 会社用チェック
+    if (loginCompanyName) {
+      const companyId = await this.userService.getCompanyIdByName(loginCompanyName);
+      if (companyId) {
+        const companyProfile = await this.userService.getCompanyProfile(companyId);
+        if (companyProfile && companyProfile.companyEmail === email) {
+          isCompany = true;
+        }
+      }
+    }
+
+    // 従業員用チェック
+    if (loginCompanyName) {
+      const companyId = await this.userService.getCompanyIdByName(loginCompanyName);
+      if (companyId) {
+        const employeeId = await this.userService.getEmployeeIdByEmail(companyId, email);
+        if (employeeId) {
+          isEmployee = true;
+        }
+      }
+    }
+
+    // 3. 判定結果で分岐
+    if (this.activeTab === 'company' && !isCompany) {
+      this.toastr.error('このメールアドレスは会社用として登録されていません。');
+      return;
+    }
+    if (this.activeTab === 'employee' && !isEmployee) {
+      this.toastr.error('このメールアドレスは従業員用として登録されていません。');
+      return;
+    }
+
+    // 4. パスワードリセット送信
     try {
-      await this.navigationService.goToVerifyEmail();
-      this.showRegister = false;
+      await this.authService.resetPassword(email);
+      this.successMessage = 'パスワードリセットのメールを送信しました。メールをご確認ください。';
+      this.routeParamService.goToResetPass();
     } catch (error) {
-      console.error('Navigation error:', error);
+      this.toastr.error('パスワードリセットメールの送信に失敗しました。メールアドレスを確認してください。');
     }
   }
 
-  openResetPass() {
-    this.showResetPass = true;
-  }
-
-  closeResetPass() {
-    this.showResetPass = false;
+  changeEmail() {
+    this.routeParamService.goToChangeEmail();
   }
 }

@@ -2,10 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/user.service';
-import { NavigationService } from '../../services/navigation.service';
 import { RouteParamService } from '../../services/route-param.service';
 import { OfficeFormComponent } from '../office-form/office-form.component';
-import { Office } from '../office.interface';
+import { Office } from '../../interface/office.interface';
 import { CompanyService } from '../../services/company.service';
 
 @Component({
@@ -26,7 +25,6 @@ export class OfficeListComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private userService: UserService,
-    private navigationService: NavigationService,
     private routeParamService: RouteParamService,
     private companyService: CompanyService
   ) {}
@@ -65,7 +63,7 @@ export class OfficeListComponent implements OnInit {
   }
 
   goHome() {
-    this.navigationService.goToCompanyHome(this.companyId);
+    this.routeParamService.goToCompanyHome();
   }
 
   async onOfficeSelected(office: Office) {

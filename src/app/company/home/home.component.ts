@@ -1,51 +1,99 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
-import { NavigationService } from '../../services/navigation.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { RouteParamService } from '../../services/route-param.service';
+import { CompanyService } from '../../services/company.service';
+import { RoleService } from '../../services/role.service';
+import { Subscription } from 'rxjs';
+import { Office } from '../../interface/office.interface';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   companyName: string = '';
   companyEmail: string = '';
   companyId: string = '';
+  officeList: Office[] = [];
+  adminCount: number = 0;
+  approverCount: number = 0;
+  employeeCount: number = 0;
+  private subscription: Subscription | null = null;
+  private roleSubscription: Subscription | null = null;
 
   constructor(
     private userService: UserService,
-    private navigationService: NavigationService,
     private route: ActivatedRoute,
     private routeParamService: RouteParamService,
-    private router: Router
+    private companyService: CompanyService,
+    private roleService: RoleService,
   ) {}
 
   async ngOnInit() {
     this.companyId = this.routeParamService.setCompanyId(this.route);
+    if (!this.companyId) {
+      console.error('会社IDが設定されていません');
+      return;
+    }
+
     const company = await this.userService.getCompanyProfile(this.companyId);
     if (company) {
       this.companyName = company.companyName;
       this.companyEmail = company.companyEmail;
     }
+    this.companyService.setCompanyId(this.companyId);
+    this.subscription = this.companyService.subscribeToOffices().subscribe(offices => {
+      this.officeList = offices;
+    });
+
+    this.roleSubscription = this.roleService.subscribeToRoles(this.companyId).subscribe(roles => {
+      const counts = this.roleService.calculateRoleCounts(roles);
+      this.adminCount = counts.adminCount;
+      this.approverCount = counts.approverCount;
+      this.employeeCount = Object.keys(roles).length;
+    });
+  }
+  
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    if (this.roleSubscription) {
+      this.roleSubscription.unsubscribe();
+    }
   }
 
   logout() {
-    this.navigationService.goToLogin();
+    this.routeParamService.goToLogin();
   }
 
   goHome() {
-    this.navigationService.goToCompanyHome(this.companyId);
+    this.routeParamService.goToCompanyHome();
   }
 
   goOfficeList() {
-    this.router.navigate(['/companies', this.companyId, 'office-list']);
+    this.routeParamService.goToOfficeList();
   }
 
-  goRegisterEmployee() {
-    this.router.navigate(['/companies', this.companyId, 'register-employee']);
+  goToRegisterEmployee() {
+    this.routeParamService.goToRegisterEmployee();
+  }
+
+  goToRole() {
+    this.routeParamService.goToRole();
+  }
+
+  goToAuditLogCo() {
+    this.routeParamService.goToAuditLogCo();
+  }
+
+  goToChangeEmail() {
+    this.routeParamService.goToChangeEmail();
   }
 }

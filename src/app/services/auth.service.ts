@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, UserCredential } from '@angular/fire/auth';
+import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, UserCredential, sendPasswordResetEmail, fetchSignInMethodsForEmail, updateEmail } from '@angular/fire/auth';
 import { User } from 'firebase/auth';
 import { Router } from '@angular/router';
 
@@ -33,6 +33,16 @@ export class AuthService {
     }
   }
 
+  // パスワードリセット
+  async resetPassword(email: string): Promise<void> {
+    try {
+      await sendPasswordResetEmail(this.auth, email);
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error;
+    }
+  }
+
   // 現在のユーザー取得
   getCurrentUser(): User | null {
     return this.auth.currentUser;
@@ -44,5 +54,17 @@ export class AuthService {
     if (!user) return false;
     await user.reload();
     return user.emailVerified;
+  }
+
+  // メールアドレスが登録されているか確認
+  async isEmailRegistered(email: string): Promise<boolean> {
+    const methods = await fetchSignInMethodsForEmail(this.auth, email);
+    return methods.length > 0;
+  }
+
+  async changeEmail(newEmail: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('ユーザーがログインしていません');
+    await updateEmail(user, newEmail);
   }
 }

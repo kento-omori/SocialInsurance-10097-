@@ -1,0 +1,284 @@
+<div class="d-flex justify-content-end mt-2 mb-2">
+    <button type="button" class="btn btn-success" (click)="goToAdminHome()">管理者ホームに戻る</button>
+</div>
+
+<div class="container-fluid mt-1 bg-light min-vh-100">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">給与情報登録フォーム（手入力）</h5>
+            </div>
+            <div class="card-body">
+                <form [formGroup]="salaryForm" (ngSubmit)="onSubmit()" disabled="!salaryForm.valid">
+                    <!-- 1行目 -->
+                    <div class="row mb-3">
+                        <!-- 社員番号 -->
+                        <div class="col-md-2">
+                            <label class="form-label">社員番号</label>
+                            <input type="text" class="form-control" formControlName="employeeId"
+                                [ngClass]="{'is-invalid': salaryForm.get('employeeId')?.invalid && salaryForm.get('employeeId')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('employeeId')?.errors?.['required'] && salaryForm.get('employeeId')?.touched">
+                                社員番号は必須です
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('employeeId')?.errors?.['maxlength']">
+                                20文字以内で入力してください
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('employeeId')?.errors?.['pattern']">
+                                半角英数字で入力してください
+                            </div>
+                            <div class="invalid-feedback"
+                                 *ngIf="salaryForm.get('employeeId')?.errors?.['notFound'] && salaryForm.get('employeeId')?.touched">
+                                存在しない社員番号です
+                            </div>
+                        </div>
+                        <!-- 氏名 -->
+                        <div class="col-md-2">
+                            <label class="form-label">従業員氏名</label>
+                            <input type="text" class="form-control bg-light"
+                                formControlName="employeeName"
+                                [readonly]="true"
+                                [ngClass]="{'is-invalid': salaryForm.get('employeeName')?.invalid && salaryForm.get('employeeName')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('employeeName')?.errors?.['required'] && salaryForm.get('employeeName')?.touched">
+                                必須入力です(社員番号で自動入力)
+                            </div>
+                        </div>
+                        <!-- 社員属性 -->
+                        <div class="col-md-2">
+                            <label class="form-label">社員属性</label>
+                            <input type="text" class="form-control bg-light"
+                                formControlName="employeeAttribute"
+                                [readonly]="true"
+                                [ngClass]="{'is-invalid': salaryForm.get('employeeAttribute')?.invalid && salaryForm.get('employeeAttribute')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('employeeAttribute')?.errors?.['required'] && salaryForm.get('employeeAttribute')?.touched">
+                                必須入力です(社員番号で自動入力)
+                            </div>
+                        </div>
+                        <!-- 資格情報 -->
+                        <div class="col-md-2">
+                            <label class="form-label">資格情報</label>
+                            <input type="text" class="form-control bg-light"
+                                formControlName="qualification"
+                                [readonly]="true"
+                                [ngClass]="{'is-invalid': salaryForm.get('qualification')?.invalid && salaryForm.get('qualification')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('qualification')?.errors?.['required'] && salaryForm.get('qualification')?.touched">
+                                必須入力です(社員番号で自動入力)
+                            </div>
+                        </div>
+                        <!-- 支給年月 -->
+                        <div class="col-md-2">
+                            <label class="form-label">支給年月</label>
+                            <input type="month" class="form-control" formControlName="paymentDate"
+                                [ngClass]="{'is-invalid': salaryForm.get('paymentDate')?.invalid && salaryForm.get('paymentDate')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('paymentDate')?.errors?.['required'] && salaryForm.get('paymentDate')?.touched">
+                                支給年月は必須です
+                            </div>
+                        </div>
+                        <!-- 支払基礎日数 -->
+                        <div class="col-md-2">
+                            <label class="form-label">支払基礎日数</label>
+                            <input type="number" class="form-control" formControlName="paymentDays"
+                                [ngClass]="{'is-invalid': salaryForm.get('paymentDays')?.invalid && salaryForm.get('paymentDays')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('paymentDays')?.errors?.['required'] && salaryForm.get('paymentDays')?.touched">
+                                支払基礎日数は必須です
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('paymentDays')?.errors?.['min'] || salaryForm.get('paymentDays')?.errors?.['max']">
+                                1～31の範囲で入力してください
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('paymentDays')?.errors?.['pattern']">
+                                半角数字で入力してください
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 2行目 -->
+                    <div class="row mb-3">
+                        <!-- 給与種類 -->
+                        <div class="col-md-2">
+                            <label class="form-label">給与種類</label>
+                            <select class="form-select" formControlName="salaryType"
+                                [ngClass]="{'is-invalid': salaryForm.get('salaryType')?.invalid && (salaryForm.get('salaryType')?.touched || salaryForm.get('salaryType')?.dirty)}">
+                                <option value="">選択してください</option>
+                                <option value="給与">給与</option>
+                                <option value="賞与">賞与</option>
+                            </select>
+                            <div class="invalid-feedback"
+                                *ngIf="salaryForm.get('salaryType')?.errors?.['required'] && (salaryForm.get('salaryType')?.touched || salaryForm.get('salaryType')?.dirty)">
+                                給与種類は必須です
+                            </div>
+                        </div>
+                        <!-- 昇給等情報 -->
+                        <div class="col-md-2">
+                            <label class="form-label">昇給等情報</label>
+                            <select class="form-select" formControlName="fixedSalaryChange"
+                                [ngClass]="{'is-invalid': salaryForm.get('fixedSalaryChange')?.invalid && (salaryForm.get('fixedSalaryChange')?.touched || salaryForm.get('fixedSalaryChange')?.dirty)}">
+                                <option value="">選択してください</option>
+                                <option value="変更なし">変更なし</option>
+                                <option value="昇給">昇給</option>
+                                <option value="降給">降給</option>
+                            </select>
+                            <div class="invalid-feedback"
+                                *ngIf="salaryForm.get('fixedSalaryChange')?.errors?.['required'] && (salaryForm.get('fixedSalaryChange')?.touched || salaryForm.get('fixedSalaryChange')?.dirty)">
+                                昇給等情報は必須です
+                            </div>
+                        </div>
+                        <!-- 非固定賃金変更 -->
+                        <div class="col-md-2">
+                            <label class="form-label">非固定賃金変更</label>
+                            <select class="form-select" formControlName="nonFixedSalaryChange"
+                                [ngClass]="{'is-invalid': salaryForm.get('nonFixedSalaryChange')?.invalid && (salaryForm.get('nonFixedSalaryChange')?.touched || salaryForm.get('nonFixedSalaryChange')?.dirty)}">
+                                <option value="">選択してください</option>
+                                <option value="変更なし">変更なし</option>
+                                <option value="変更あり">変更あり</option>
+                            </select>
+                            <div class="invalid-feedback"
+                                *ngIf="salaryForm.get('nonFixedSalaryChange')?.errors?.['required'] && (salaryForm.get('nonFixedSalaryChange')?.touched || salaryForm.get('nonFixedSalaryChange')?.dirty)">
+                                非固定賃金変更は必須です
+                            </div>
+                        </div>
+                        <!-- 支給額(通貨) -->
+                        <div class="col-md-2">
+                            <label class="form-label">支給額(通貨)</label>
+                            <input type="text" class="form-control" formControlName="currencyAmount"
+                                [ngClass]="{'is-invalid': salaryForm.get('currencyAmount')?.invalid && salaryForm.get('currencyAmount')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('currencyAmount')?.errors?.['required'] && salaryForm.get('currencyAmount')?.touched">
+                                支給額(通貨)は必須です
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('currencyAmount')?.errors?.['min']">
+                                0円以上で入力してください
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('currencyAmount')?.errors?.['pattern'] && salaryForm.get('currencyAmount')?.touched">
+                                0または先頭に0のない半角数字で入力してください（例：0, 1000）
+                            </div>
+                        </div>
+                        <!-- 支給額(現物) -->
+                        <div class="col-md-2">
+                            <label class="form-label">支給額(現物)</label>
+                            <input type="text" class="form-control" formControlName="nonCurrencyAmount"
+                                [ngClass]="{'is-invalid': salaryForm.get('nonCurrencyAmount')?.invalid && salaryForm.get('nonCurrencyAmount')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonCurrencyAmount')?.errors?.['required'] && salaryForm.get('nonCurrencyAmount')?.touched">
+                                支給額(現物)は必須です
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonCurrencyAmount')?.errors?.['min']">
+                                0円以上で入力してください
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonCurrencyAmount')?.errors?.['pattern'] && salaryForm.get('nonCurrencyAmount')?.touched">
+                                0または先頭に0のない半角数字で入力してください（例：0, 1000）
+                            </div>
+                        </div>
+                        <!-- 社会保険算定対象総額 -->
+                        <div class="col-md-2">
+                            <label class="form-label">社会保険算定対象総額</label>
+                            <input type="text" class="form-control" formControlName="socialInsuranceTotalAmount" readonly>
+                        </div>
+                    </div>
+                    <!-- 3行目 -->
+                    <div class="row mb-3">
+                        <!-- 支給額(社会保険非対象) -->
+                        <div class="col-md-2">
+                            <label class="form-label">支給額(社会保険非対象)</label>
+                            <input type="text" class="form-control" formControlName="nonSocialInsuranceAmount"
+                                [ngClass]="{'is-invalid': salaryForm.get('nonSocialInsuranceAmount')?.invalid && salaryForm.get('nonSocialInsuranceAmount')?.touched}">
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonSocialInsuranceAmount')?.errors?.['required'] && salaryForm.get('nonSocialInsuranceAmount')?.touched">
+                                支給額(社会保険非対象)は必須です
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonSocialInsuranceAmount')?.errors?.['min']">
+                                0円以上で入力してください
+                            </div>
+                            <div class="invalid-feedback" *ngIf="salaryForm.get('nonSocialInsuranceAmount')?.errors?.['pattern'] && salaryForm.get('nonSocialInsuranceAmount')?.touched">
+                                0または先頭に0のない半角数字で入力してください（例：0, 1000）
+                            </div>
+                            </div>
+                            <!-- 支給総額 -->
+                            <div class="col-md-2">
+                                <label class="form-label">支給総額</label>
+                                <input type="text" class="form-control" formControlName="totalAmount" readonly>
+                            </div>
+                            <!-- 登録ボタン -->
+                            <div class="col-md-8 d-flex align-items-end justify-content-end">
+                                <button type="submit" class="btn btn-success" [disabled]="!salaryForm.valid" style="height: 38px;">登録</button>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">給与情報登録フォーム（ファイルアップロード）</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">CSVファイルを選択してください</label>
+                            <input type="file" class="form-control" accept=".csv" (change)="onFileSelected($event)">
+                            <div class="form-text">
+                                対応フォーマット: CSVファイル（UTF-8）
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-success" [disabled]="!selectedFile" (click)="uploadCSV()">
+                        CSVファイルを読み込む
+                        </button>
+                    </div>
+                </div>
+                <!-- アップロードステータス表示 -->
+                <div *ngIf="uploadStatus" class="mt-2">
+                    <div class="alert" [ngClass]="{'alert-info': uploadProgress < 100, 'alert-success': uploadProgress === 100}">
+                        {{ uploadStatus }}
+                        <div *ngIf="uploadProgress > 0" class="progress mt-2">
+                            <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- プレビューエリア -->
+                <div class="mt-3" *ngIf="csvPreview.length > 0">
+                    <h6>プレビュー</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>社員番号</th>
+                                    <th>従業員氏名</th>
+                                    <th>社員属性</th>
+                                    <th>資格情報</th>
+                                    <th>支給年月</th>
+                                    <th>支払基礎日数</th>
+                                    <th>給与種類</th>
+                                    <th>昇給等情報</th>
+                                    <th>非固定賃金変更</th>
+                                    <th>支給額(通貨)</th>
+                                    <th>支給額(現物)</th>
+                                    <th>社会保険算定対象総額</th>
+                                    <th>支給額(社会保険非対象)</th>
+                                    <th>支給総額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of csvPreview">
+                                <td>{{row.employeeId}}</td>
+                                <td>{{row.employeeName}}</td>
+                                <td>{{row.employeeAttribute}}</td>
+                                <td>{{row.qualification}}</td>
+                                <td>{{row.paymentDate}}</td>
+                                <td>{{row.paymentDays}}</td>
+                                <td>{{row.salaryType}}</td>
+                                <td>{{row.fixedSalaryChange}}</td>
+                                <td>{{row.nonFixedSalaryChange}}</td>
+                                <td>{{row.currencyAmount}}</td>
+                                <td>{{row.nonCurrencyAmount}}</td>
+                                <td>{{row.socialInsuranceTotalAmount}}</td>
+                                <td>{{row.nonSocialInsuranceAmount}}</td>
+                                <td>{{row.totalAmount}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+

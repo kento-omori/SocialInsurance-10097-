@@ -1,0 +1,80 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-success">
+    <div class="container-fluid">
+        <div class="navbar-brand text-white">給与情報管理</div>
+
+        <div class="navbar-brand text-white">
+            <button class="btn btn-outline-light me-2" (click)="goToAllEmployeeList()">
+                <i class="fas fa-list"></i> 従業員情報一覧に戻る
+            </button>
+            <button class="btn btn-outline-light" (click)="goToAdminHome()">
+                <i class="fas fa-home"></i> 管理者ホームに戻る
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-5 min-vh-100">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title fs-5">標準報酬月額</h5>
+          </div>
+          <div class="col-md-12">
+          <!-- ヘッダー -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small text-center">社員番号</th>
+                            <th class="small text-center">従業員氏名</th>
+                            <th class="small text-center">社員属性</th>
+                            <th class="small text-center">資格情報</th>
+                            <th class="small text-center">標準報酬月額</th>
+                            <th class="small text-center">等級</th>
+                            <th class="small text-center">標準報酬月額適用年月</th>
+                            <th class="small text-center">健康保険料率</th>
+                            <th class="small text-center">介護保険料率</th>
+                            <th class="small text-center">厚生年金保険料率</th>
+                            <th class="small text-center">子ども・子育て拠出金率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- ローディング表示 -->
+                        <tr *ngIf="!standardRemunerationList">
+                            <td colspan="12" class="text-center">
+                                <div class="d-flex justify-content-center align-items-center p-3">
+                                    <div class="spinner-border text-success" role="status">
+                                        <span class="visually-hidden">読み込み中...</span>
+                                    </div>
+                                    <span class="ms-2">データを読み込み中...</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- データがない場合の表示 -->
+                        <tr *ngIf="standardRemunerationList && standardRemunerationList.length === 0">
+                            <td colspan="12" class="text-center">
+                                データがありません
+                            </td>
+                        </tr>
+                        <!-- データ表示 -->
+                        <tr *ngFor="let standardRemuneration of standardRemunerationList">
+                            <td class="small">{{ standardRemuneration.employeeId }}</td>
+                            <td class="small">{{ standardRemuneration.employeeName }}</td>
+                            <td class="small">{{ standardRemuneration.employeeAttribute }}</td>
+                            <td class="small">{{ standardRemuneration.qualification }}</td>
+                            <td class="small text-end">{{ standardRemuneration.standardRemuneration | jpy }}</td>
+                            <td class="small">{{ standardRemuneration.standardRemunerationGrade }}</td>
+                            <td class="small">{{ standardRemuneration.standardRemunerationDate }}</td>
+                            <td class="small text-end">{{ standardRemuneration.healthInsuranceRate | percent }}</td>
+                            <td class="small text-end">{{ standardRemuneration.careInsuranceRate | percent }}</td>
+                            <td class="small text-end">{{ standardRemuneration.pensionInsuranceRate | percent }}</td>
+                            <td class="small text-end">{{ standardRemuneration.childEducationRate | percent }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+

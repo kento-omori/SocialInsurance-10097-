@@ -55,7 +55,15 @@ export const appConfig: ApplicationConfig = {
       return app;
     }),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore(getApp(),'socialinsurance')),
+    provideFirestore(() => {
+      const app = getApp();
+      // 開発環境ではデフォルトのデータベースを使用
+      if (window.location.hostname === "localhost") {
+        return getFirestore(app);
+      }
+      // 本番環境では指定のデータベースを使用
+      return getFirestore(app, 'socialinsurance');
+    }),
     provideStorage(() => getStorage()),
     provideMessaging(() => getMessaging()),
     provideFunctions(() => getFunctions()),

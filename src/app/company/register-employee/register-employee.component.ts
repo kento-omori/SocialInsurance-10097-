@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, AsyncValidatorFn } from '@angular/forms';
 import { RouteParamService } from '../../services/route-param.service';
 import { ActivatedRoute } from '@angular/router';
-import { UserService, EmployeeProfile } from '../../services/user.service';
-import { Observable, map } from 'rxjs';
+import { UserService } from '../../services/user.service';
+import { EmployeeProfile } from '../../interface/employee-company-profile';
+import { Observable } from 'rxjs';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../environments/environment';
 
 interface CSVPreviewRow {
   employeeId: string;
@@ -16,6 +18,8 @@ interface CSVPreviewRow {
   pensionInsurance: boolean;
 }
 
+declare var bootstrap: any;
+
 @Component({
   selector: 'app-register-employee',
   standalone: true,
@@ -23,7 +27,7 @@ interface CSVPreviewRow {
   templateUrl: './register-employee.component.html',
   styleUrl: './register-employee.component.css'
 })
-export class RegisterEmployeeComponent implements OnInit {
+export class RegisterEmployeeComponent implements OnInit, AfterViewInit {
   companyId: string = '';
   companyName: string = '';
   employeeForm: FormGroup;
@@ -39,8 +43,8 @@ export class RegisterEmployeeComponent implements OnInit {
   uploadProgress: number = 0;
   uploadStatus: string = '';
 
-  // デプロイ後に実際のURLに置き換えるか、環境変数で管理
-  private functionsUrl = 'https://us-central1-kento-test-app.cloudfunctions.net/uploadCSV';
+  // 環境変数で管理
+  private functionsUrl = environment.functionsUrl;
 
   constructor(
     private routeParamService: RouteParamService,
@@ -48,7 +52,7 @@ export class RegisterEmployeeComponent implements OnInit {
     private userService: UserService,
     private fb: FormBuilder,
     private http: HttpClient,
-    private toast: ToastrService
+    private toast: ToastrService,
   ) {
     this.employeeForm = this.fb.group({
       employeeId: ['', [
@@ -69,6 +73,16 @@ export class RegisterEmployeeComponent implements OnInit {
     this.companyId = this.routeParamService.setCompanyId(this.route);
     this.loadCompanyName();
     this.loadEmployees();
+  }
+
+  ngAfterViewInit() {
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.map(function (popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl, {
+        container: 'body',
+        customClass: 'wide-popover'
+      });
+    });
   }
 
   // 会社名を取得するメソッド
@@ -168,7 +182,7 @@ export class RegisterEmployeeComponent implements OnInit {
       try {
         if (this.isEditMode) {
           // 更新処理
-          await this.userService.updateEmployeeProfile(this.companyId, employee);
+          await this.userService.createEmployeeProfile(this.companyId, employee);
           this.isEditMode = false;
           this.editingEmployeeId = '';
           this.editingEmployee = null;
@@ -225,6 +239,10 @@ export class RegisterEmployeeComponent implements OnInit {
           });
       });
     };
+  }
+
+  goHome(): void {
+    this.routeParamService.goToCompanyHome();
   }
 
   // 以下、CSV読み込みに関するメソッド
@@ -285,41 +303,51 @@ export class RegisterEmployeeComponent implements OnInit {
 
     try {
       this.uploadStatus = 'アップロード中...';
-      const formData: FormData = new FormData();
-      formData.append('file', this.selectedFile);
-      formData.append('companyId', this.companyId);
-      formData.append('companyName', this.companyName);
+      
+      // CSVファイルの内容を読み込む
+      const reader = new FileReader();
+      reader.onload = async (e: ProgressEvent<FileReader>) => {
+        const csvData = e.target?.result as string;
+        
+        // リクエストデータの作成
+        const requestData = {
+          companyId: this.companyId,
+          companyName: this.companyName,
+          csvData: csvData
+        };
 
-      this.http.post(this.functionsUrl, formData, {
-        reportProgress: true,
-        observe: 'events'
-      }).subscribe({
-        next: async (event) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            this.uploadProgress = Math.round(100 * (event.loaded / (event.total || 1)));
-          } else if (event.type === HttpEventType.Response) {
-            const response = event.body as { success: boolean; message: string; count: number };
-            if (response.success) {
-              this.uploadStatus = `CSVファイルのアップロードと保存が完了しました！（${response.count}件のデータを保存）`;
-              // フォームとプレビューのクリア
-              this.selectedFile = null;
-              this.csvPreview = [];
-              this.uploadProgress = 0;
-              // 従業員一覧の更新
-              await this.loadEmployees();
-            } else {
-              this.uploadStatus = `アップロードに失敗しました: ${response.message}`;
-              this.uploadProgress = 0;
+        this.http.post(environment.functionsUrl.employee, requestData, {
+          reportProgress: true,
+          observe: 'events'
+        }).subscribe({
+          next: async (event) => {
+            if (event.type === HttpEventType.UploadProgress) {
+              this.uploadProgress = Math.round(100 * (event.loaded / (event.total || 1)));
+            } else if (event.type === HttpEventType.Response) {
+              const response = event.body as { success: boolean; message: string; count: number };
+              if (response.success) {
+                this.uploadStatus = `CSVファイルのアップロードと保存が完了しました！（${response.count}件のデータを保存）`;
+                // フォームとプレビューのクリア
+                this.selectedFile = null;
+                this.csvPreview = [];
+                this.uploadProgress = 0;
+                // 従業員一覧の更新
+                await this.loadEmployees();
+              } else {
+                this.uploadStatus = `アップロードに失敗しました: ${response.message}`;
+                this.uploadProgress = 0;
+              }
             }
+          },
+          error: (error) => {
+            console.error('CSVファイルのアップロードに失敗しました:', error);
+            this.uploadStatus = `アップロードに失敗しました: ${error.message}`;
+            this.uploadProgress = 0;
+            this.csvPreview = [];
           }
-        },
-        error: (error) => {
-          console.error('CSVファイルのアップロードに失敗しました:', error);
-          this.uploadStatus = `アップロードに失敗しました: ${error.message}`;
-          this.uploadProgress = 0;
-          this.csvPreview = [];
-        }
-      });
+        });
+      };
+      reader.readAsText(this.selectedFile, 'UTF-8');
     } catch (error) {
       console.error('CSVファイルのアップロードに失敗しました:', error);
       this.uploadStatus = `アップロードに失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`;

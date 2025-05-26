@@ -1,4 +1,5 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component } from '@angular/core';
+import { RouteParamService } from '../../services/route-param.service';
 
 @Component({
   selector: 'app-reset-pass',
@@ -8,9 +9,11 @@ import { Component, Output, EventEmitter } from '@angular/core';
   styleUrl: './reset-pass.component.css'
 })
 export class ResetPassComponent {
-  @Output() backToLogin = new EventEmitter<void>();
 
-  onBackToLogin() {
-    this.backToLogin.emit();
+  constructor(private routeParamService: RouteParamService) {
+  }
+
+  goToLogin() {
+    this.routeParamService.goToLogin();
   }
 }

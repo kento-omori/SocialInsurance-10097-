@@ -25,10 +25,19 @@
                 </div>
               </div>
               <div *ngIf="registerType === 'employee'" class="mb-3">
-                <label class="form-label">氏名</label>
-                <input type="text" class="form-control" formControlName="displayName" required [ngClass]="{'is-invalid': registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched}">
-                <div *ngIf="registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched" class="text-danger">
-                  <span class="me-1">&#33;</span>氏名を正しく入力してください。
+                <label for="displayName" class="form-label">従業員氏名</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="displayName"
+                  formControlName="displayName"
+                  [ngClass]="{'is-invalid': registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched}"
+                >
+                <div class="invalid-feedback" *ngIf="registerForm.get('displayName')?.errors?.['required']">
+                  氏名を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="registerForm.get('displayName')?.errors?.['pattern']">
+                  全角スペースのみ使用可能です
                 </div>
               </div>
               <div class="mb-3">

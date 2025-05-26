@@ -1,0 +1,10 @@
+.table {
+    thead {
+      th {
+        font-size: 0.8rem;
+        white-space: nowrap;
+        padding: 0.5rem;
+      }
+    }
+  }
+  

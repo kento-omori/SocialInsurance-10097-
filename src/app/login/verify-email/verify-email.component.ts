@@ -4,8 +4,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { CompanyProfile, EmployeeProfile } from '../../services/user.service'
-import { NavigationService } from '../../services/navigation.service';
+import { CompanyProfile, EmployeeProfile } from '../../interface/employee-company-profile';
 
 @Component({
   selector: 'app-verify-email',
@@ -29,7 +28,6 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private userService: UserService,
-    private navigationService: NavigationService
   ) {}
 
   ngOnInit() {
@@ -144,6 +142,6 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
   }
 
   goLogin() {
-    this.navigationService.goToLogin();
+    this.router.navigate([`/login`]);
   }
 }

@@ -1,0 +1,792 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-primary">
+    <div class="container-fluid">
+        <div class="navbar-brand text-white">従業員基本情報</div>
+        <div class="navbar-brand text-white">
+            <button class="btn btn-outline-light" (click)="goToEmployeeHome()">
+                <i class="fas fa-home"></i> 従業員ホームに戻る
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-5 min-vh-100">
+    <div class="row">
+      <!-- 左サイドバー（縦長カード） -->
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title fs-5">作成履歴一覧</h5>
+            <div class="list-group">
+              <div class="list-group-item list-group-item-action" *ngFor="let basicInfo of basicInfoList" 
+              (click)="selectBasicInfo(basicInfo)" style="cursor: pointer;">
+                {{ basicInfo.createdAt | date:'yyyy年MM月dd日 HH時mm分':'ja-JP' }}：作成
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中央・右：従業員基本情報フォーム -->
+      <div class="col-md-8">
+        <div class="card">
+          <div 
+            class="card-header d-flex justify-content-between align-items-center"
+            [ngClass]="{'bg-success text-white': isViewMode, 'bg-warning text-white': isEditMode, 'bg-primary-subtle text-black': !isEditMode && !isViewMode}"
+          >
+            <h5 class="mb-0">
+              {{ !isViewMode && !isEditMode ? '従業員基本情報 登録フォーム' : '' }}
+              {{ isViewMode ? '従業員基本情報 閲覧フォーム' : '' }}
+              {{ isEditMode ? '従業員基本情報 編集フォーム' : '' }}
+            </h5>
+            <div *ngIf="isViewMode">
+              <button class="btn btn-outline-light me-2" (click)="editMode()">編集</button>
+              <button class="btn btn-outline-light" (click)="closeMode()">閉じる</button>
+            </div>
+            <div *ngIf="isEditMode">
+              <button class="btn btn-outline-light" (click)="closeMode()">閉じる</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- エラーメッセージ -->
+            <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+              {{ errorMessage }}
+            </div>
+
+            <form class="row g-2 p-4 bg-white rounded shadow-sm" [formGroup]="basicInfoForm" (ngSubmit)="onSubmit()">
+              <!-- 従業員情報 -->
+              <div class="col-md-12 mb-3">
+                <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-user"></i> 従業員情報</h5>
+              </div>
+              <div formGroupName="employeeInfo" class="row">
+                <div class="col-md-3">
+                  <label class="form-label">氏 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light" formControlName="lastName" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.lastName')?.invalid && basicInfoForm.get('employeeInfo.lastName')?.touched}" readonly>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.lastName')?.errors?.['required'] && basicInfoForm.get('employeeInfo.lastName')?.touched">
+                    氏を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.lastName')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.lastName')?.touched">
+                    スペースは使用できません
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">名 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light" formControlName="firstName" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.firstName')?.invalid && basicInfoForm.get('employeeInfo.firstName')?.touched}" readonly>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.firstName')?.errors?.['required'] && basicInfoForm.get('employeeInfo.firstName')?.touched">
+                    名を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.firstName')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.firstName')?.touched">
+                    スペースは使用できません
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">氏カナ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="lastNameKana" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.lastNameKana')?.invalid && basicInfoForm.get('employeeInfo.lastNameKana')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.lastNameKana')?.errors?.['required'] && basicInfoForm.get('employeeInfo.lastNameKana')?.touched">
+                    氏カナを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.lastNameKana')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.lastNameKana')?.touched">
+                    カタカナのみで入力してください
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">名カナ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="firstNameKana" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.firstNameKana')?.invalid && basicInfoForm.get('employeeInfo.firstNameKana')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.firstNameKana')?.errors?.['required'] && basicInfoForm.get('employeeInfo.firstNameKana')?.touched">
+                    名カナを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.firstNameKana')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.firstNameKana')?.touched">
+                    カタカナのみで入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-12">
+                  <label class="form-label">生年月日 <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-2">
+                    <select class="form-select" formControlName="birthEra" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.birthEra')?.invalid && basicInfoForm.get('employeeInfo.birthEra')?.touched}">
+                      <option value="">選択</option>
+                      <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                    </select>
+                    <input type="text" class="form-control" formControlName="birthYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.birthYear')?.invalid && basicInfoForm.get('employeeInfo.birthYear')?.touched}">
+                    <span class="input-group-text">年</span>
+                    <input type="text" class="form-control" formControlName="birthMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.birthMonth')?.invalid && basicInfoForm.get('employeeInfo.birthMonth')?.touched}">
+                    <span class="input-group-text">月</span>
+                    <input type="text" class="form-control" formControlName="birthDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.birthDay')?.invalid && basicInfoForm.get('employeeInfo.birthDay')?.touched}">
+                    <span class="input-group-text">日</span>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthEra')?.errors?.['required'] && basicInfoForm.get('employeeInfo.birthEra')?.touched">
+                    和暦を選択してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthYear')?.errors?.['required'] && basicInfoForm.get('employeeInfo.birthYear')?.touched">
+                    年を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthYear')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.birthYear')?.touched">
+                    年は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthYear')?.errors?.['invalidYear'] && basicInfoForm.get('employeeInfo.birthYear')?.touched">
+                    正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthMonth')?.errors?.['required'] && basicInfoForm.get('employeeInfo.birthMonth')?.touched">
+                    月を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthMonth')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.birthMonth')?.touched">
+                    月は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthMonth')?.errors?.['min'] || basicInfoForm.get('employeeInfo.birthMonth')?.errors?.['max']">
+                    月は1-12の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthDay')?.errors?.['required'] && basicInfoForm.get('employeeInfo.birthDay')?.touched">
+                    日を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthDay')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.birthDay')?.touched">
+                    日は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthDay')?.errors?.['min'] || basicInfoForm.get('employeeInfo.birthDay')?.errors?.['max']">
+                    日は1-31の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.birthDay')?.errors?.['invalidDay'] && basicInfoForm.get('employeeInfo.birthDay')?.touched">
+                    正しい日付を入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-4">
+                  <label class="form-label">性別 <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="gender" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.gender')?.invalid && basicInfoForm.get('employeeInfo.gender')?.touched}">
+                      <option value="">選択してください</option>
+                      <option value="男性">男性</option>
+                      <option value="女性">女性</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.gender')?.errors?.['required'] && basicInfoForm.get('employeeInfo.gender')?.touched">
+                      性別を選択してください
+                    </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">電話番号</label>
+                  <input type="text" class="form-control" formControlName="phone">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">メールアドレス</label>
+                  <input type="email" class="form-control" formControlName="email">
+                </div>
+                <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.email')?.errors?.['email'] && basicInfoForm.get('employeeInfo.email')?.touched">
+                  正しいメールアドレスの形式で入力してください
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-4">
+                  <label class="form-label">郵便番号 <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                        <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                        <input type="text" class="form-control" placeholder="123" formControlName="postalCode1" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.postalCode1')?.invalid && basicInfoForm.get('employeeInfo.postalCode1')?.touched}">
+                        <span class="input-group-text">-</span>
+                        <input type="text" class="form-control" placeholder="4567" formControlName="postalCode2" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.postalCode2')?.invalid && basicInfoForm.get('employeeInfo.postalCode2')?.touched}">
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.postalCode1')?.errors?.['required'] && basicInfoForm.get('employeeInfo.postalCode1')?.touched">
+                    郵便番号（前半）を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.postalCode1')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.postalCode1')?.touched">
+                    郵便番号（前半）は3桁の半角数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.postalCode2')?.errors?.['required'] && basicInfoForm.get('employeeInfo.postalCode2')?.touched">
+                    郵便番号（後半）を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.postalCode2')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.postalCode2')?.touched">
+                    郵便番号（後半）は4桁の半角数字で入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-10">
+                  <label class="form-label">住所 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="address" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.address')?.invalid && basicInfoForm.get('employeeInfo.address')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.address')?.errors?.['required'] && basicInfoForm.get('employeeInfo.address')?.touched">
+                    住所を入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-10">
+                  <label class="form-label">住所カナ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="addressKana" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.addressKana')?.invalid && basicInfoForm.get('employeeInfo.addressKana')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.addressKana')?.errors?.['required'] && basicInfoForm.get('employeeInfo.addressKana')?.touched">
+                    住所カナを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.addressKana')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.addressKana')?.touched">
+                    住所カナはカタカナ、半角数字、半角ハイフン、スペースで入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-8">
+                  <label class="form-label">マイナンバー（12桁）<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" minlength="12" maxlength="12" formControlName="myNumber" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.myNumber')?.invalid && basicInfoForm.get('employeeInfo.myNumber')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.myNumber')?.errors?.['required'] && basicInfoForm.get('employeeInfo.myNumber')?.touched">
+                    マイナンバーを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.myNumber')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.myNumber')?.touched">
+                    マイナンバーは12桁の半角数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.myNumber')?.errors?.['minlength'] || basicInfoForm.get('employeeInfo.myNumber')?.errors?.['maxlength']">
+                    マイナンバーは12桁で入力してください
+                  </div>
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end" *ngIf="!isViewMode">
+                  <input type="file" class="form-control" #myNumberFileInput (change)="onMyNumberFileSelected($event)" style="display: none" multiple>
+                  <button class="btn btn-outline-secondary" type="button" (click)="myNumberFileInput.click()">
+                    <i class="fa fa-paperclip">ファイル添付</i>
+                  </button>
+                </div>
+
+                <div *ngIf="selectedMyNumberFile" class="selected-file mt-2 mb-2">
+                  <div *ngFor="let file of selectedMyNumberFile" class="d-flex align-items-center">
+                    <i class="fa fa-file me-2"></i>
+                    <a *ngIf="file.url" [href]="file.url" target="_blank" class="file-name text-primary text-decoration-underline" style="cursor:pointer;">
+                      {{ file.name }}
+                    </a>
+                    <span *ngIf="!file.url">{{ file.name }}</span>
+                    <button class="btn btn-sm btn-outline-danger ms-2" type="button" (click)="onFileRemove('myNumberFile', file)" *ngIf="!isViewMode">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="force-break"></div>
+                <div class="col-md-8">
+                  <label class="form-label">基礎年金番号（10桁）<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" minlength="10" maxlength="10" formControlName="basicPensionNumber" [ngClass]="{'is-invalid': basicInfoForm.get('employeeInfo.basicPensionNumber')?.invalid && basicInfoForm.get('employeeInfo.basicPensionNumber')?.touched}">
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.basicPensionNumber')?.errors?.['required'] && basicInfoForm.get('employeeInfo.basicPensionNumber')?.touched">
+                    基礎年金番号を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.basicPensionNumber')?.errors?.['pattern'] && basicInfoForm.get('employeeInfo.basicPensionNumber')?.touched">
+                    基礎年金番号は10桁の半角数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employeeInfo.basicPensionNumber')?.errors?.['minlength'] || basicInfoForm.get('employeeInfo.basicPensionNumber')?.errors?.['maxlength']">
+                    基礎年金番号は10桁で入力してください
+                  </div>
+                </div>
+                
+                <div class="col-md-4 d-flex align-items-end" *ngIf="!isViewMode">
+                  <input type="file" class="form-control" #basicPensionNumberFileInput (change)="onBasicPensionNumberFileSelected($event)" style="display: none" multiple>
+                  <button class="btn btn-outline-secondary" type="button" (click)="basicPensionNumberFileInput.click()">
+                    <i class="fa fa-paperclip">ファイル添付</i>
+                  </button>
+                </div>
+
+                <div *ngIf="selectedBasicPensionNumberFile" class="selected-file mt-2">
+                  <div *ngFor="let file of selectedBasicPensionNumberFile" class="d-flex align-items-center">
+                    <i class="fa fa-file me-2"></i>
+                    <a *ngIf="file.url" [href]="file.url" target="_blank" class="file-name text-primary text-decoration-underline" style="cursor:pointer;">
+                      {{ file.name }}
+                    </a>
+                    <span *ngIf="!file.url">{{ file.name }}</span>
+                    <button class="btn btn-sm btn-outline-danger ms-2" type="button" (click)="onFileRemove('basicPensionNumberFile', file)" *ngIf="!isViewMode">
+                      <i class="fa fa-trash"></i>
+                    </button>
+            </div>
+          </div>
+
+              </div>
+
+              <!-- 入退社情報 -->
+              <div class="col-md-12 mt-4 mb-3">
+                <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-briefcase"></i> 入退社情報</h5>
+              </div>
+              <div formGroupName="employmentInfo" class="row">
+                <div class="col-md-4">
+                  <label class="form-label">在籍状況 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light" [value]="basicInfoForm.get('employmentInfo.enrolmentData')?.value === true ? '在籍' : (basicInfoForm.get('employmentInfo.enrolmentData')?.value === false ? '退職' : '')" readonly>
+                  <!-- <select class="form-select bg-light" formControlName="enrolmentData" [disabled]="true">
+                    <option value="">選択してください</option>
+                    <option value="在籍">在籍</option>
+                    <option value="退職">退職</option>
+                  </select> -->
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.enrolmentData')?.errors?.['required'] && basicInfoForm.get('employmentInfo.enrolmentData')?.touched">
+                    在籍状況を選択してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-12">
+                  <label class="form-label">入社年月日 <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-2">
+                    <select class="form-select" formControlName="hireEra" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.hireEra')?.invalid && basicInfoForm.get('employmentInfo.hireEra')?.touched}">
+                      <option value="">選択</option>
+                      <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                    </select>
+                    <input type="text" class="form-control" formControlName="hireYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.hireYear')?.invalid && basicInfoForm.get('employmentInfo.hireYear')?.touched}">
+                    <span class="input-group-text">年</span>
+                    <input type="text" class="form-control" formControlName="hireMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.hireMonth')?.invalid && basicInfoForm.get('employmentInfo.hireMonth')?.touched}">
+                    <span class="input-group-text">月</span>
+                    <input type="text" class="form-control" formControlName="hireDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.hireDay')?.invalid && basicInfoForm.get('employmentInfo.hireDay')?.touched}">
+                    <span class="input-group-text">日</span>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireEra')?.errors?.['required'] && basicInfoForm.get('employmentInfo.hireEra')?.touched">
+                    和暦を選択してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireYear')?.errors?.['required'] && basicInfoForm.get('employmentInfo.hireYear')?.touched">
+                    年を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireYear')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.hireYear')?.touched">
+                    年は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireYear')?.errors?.['invalidYear'] && basicInfoForm.get('employmentInfo.hireYear')?.touched">
+                    正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireYear')?.errors?.['invalidDateOrder'] && basicInfoForm.get('employmentInfo.hireYear')?.touched">
+                    入社日は退社日より前の日付を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireMonth')?.errors?.['required'] && basicInfoForm.get('employmentInfo.hireMonth')?.touched">
+                    月を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireMonth')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.hireMonth')?.touched">
+                    月は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireMonth')?.errors?.['min'] || basicInfoForm.get('employmentInfo.hireMonth')?.errors?.['max']">
+                    月は1-12の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireDay')?.errors?.['required'] && basicInfoForm.get('employmentInfo.hireDay')?.touched">
+                    日を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireDay')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.hireDay')?.touched">
+                    日は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireDay')?.errors?.['min'] || basicInfoForm.get('employmentInfo.hireDay')?.errors?.['max']">
+                    日は1-31の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.hireDay')?.errors?.['invalidDay'] && basicInfoForm.get('employmentInfo.hireDay')?.touched">
+                    正しい日付を入力してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-12">
+                  <label class="form-label">退社年月日</label>
+                  <div class="d-flex gap-2">
+                    <select class="form-select" formControlName="retireEra" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.retireEra')?.invalid && basicInfoForm.get('employmentInfo.retireEra')?.touched}">
+                      <option value="">選択</option>
+                      <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                    </select>
+                    <input type="text" class="form-control" formControlName="retireYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.retireYear')?.invalid && basicInfoForm.get('employmentInfo.retireYear')?.touched}">
+                    <span class="input-group-text">年</span>
+                    <input type="text" class="form-control" formControlName="retireMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.retireMonth')?.invalid && basicInfoForm.get('employmentInfo.retireMonth')?.touched}">
+                    <span class="input-group-text">月</span>
+                    <input type="text" class="form-control" formControlName="retireDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': basicInfoForm.get('employmentInfo.retireDay')?.invalid && basicInfoForm.get('employmentInfo.retireDay')?.touched}">
+                    <span class="input-group-text">日</span>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireYear')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.retireYear')?.touched">
+                    年は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireYear')?.errors?.['invalidYear'] && basicInfoForm.get('employmentInfo.retireYear')?.touched">
+                    正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireYear')?.errors?.['invalidDateOrder'] && basicInfoForm.get('employmentInfo.retireYear')?.touched">
+                    退社日は入社日より後の日付を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireMonth')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.retireMonth')?.touched">
+                    月は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireMonth')?.errors?.['min'] || basicInfoForm.get('employmentInfo.retireMonth')?.errors?.['max']">
+                    月は1-12の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireDay')?.errors?.['pattern'] && basicInfoForm.get('employmentInfo.retireDay')?.touched">
+                    日は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireDay')?.errors?.['min'] || basicInfoForm.get('employmentInfo.retireDay')?.errors?.['max']">
+                    日は1-31の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('employmentInfo.retireDay')?.errors?.['invalidDay'] && basicInfoForm.get('employmentInfo.retireDay')?.touched">
+                    正しい日付を入力してください
+                  </div>
+                </div>
+              </div>
+
+              <!-- 業務情報 -->
+              <div class="col-md-12 mt-4 mb-3">
+                <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-building"></i> 業務情報</h5>
+              </div>
+              <div formGroupName="officeInfo" class="row">
+                <div class="force-break"></div>
+                <div class="col-md-6">
+                  <label class="form-label">社員番号<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light" formControlName="employeeNumber" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">社員属性<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control bg-light" formControlName="employeeAttribute" readonly>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-12">
+                  <label class="form-label">所属事業所<span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="office" [ngClass]="{'is-invalid': basicInfoForm.get('officeInfo.office')?.invalid && basicInfoForm.get('officeInfo.office')?.touched}">
+                    <option value="">選択してください</option>
+                    <option *ngFor="let o of officeList" [value]="o.id">{{ o.officeName }}</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="basicInfoForm.get('officeInfo.office')?.errors?.['required'] && basicInfoForm.get('officeInfo.office')?.touched">
+                    所属事業所を選択してください
+                  </div>
+                </div>
+                <div class="force-break"></div>
+                <div class="col-md-6">
+                  <label class="form-label">役職</label>
+                  <input type="text" class="form-control" formControlName="rank">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">部署</label>
+                  <input type="text" class="form-control" formControlName="department">
+                </div>
+              </div>
+
+              <!-- 通勤手当 -->
+              <div class="col-md-12 mt-4 mb-3">
+                <h5 class="fw-bold border-bottom pb-2 mb-3"><i class="fa fa-train"></i> 通勤手当</h5>
+              </div>
+              <div formGroupName="commuteInfo" class="row">
+                <div class="col-md-6">
+                  <label class="form-label">通勤区間</label>
+                  <input type="text" class="form-control" formControlName="commuteSection">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">定期券代</label>
+                  <input type="text" class="form-control" formControlName="commutePass">
+                </div>
+              </div>
+
+              <!-- 家族情報 -->
+              <div class="col-md-12 mt-4 mb-3">
+                <h5 class="fw-bold border-bottom pb-2 mb-3">
+                  <i class="fa fa-users"></i> 家族情報
+                  <button type="button" class="btn btn-primary btn-sm float-end" (click)="addFamilyMember()" *ngIf="!isViewMode">
+                    <i class="fa fa-plus"></i> 家族を追加
+                  </button>
+                </h5>
+              </div>
+              <div formArrayName="familyMembers" class="row">
+                <div *ngFor="let family of familyMembersArray.controls; let i = index" [formGroupName]="i" class="family-member-section">
+                  <div class="col-md-12 mb-3 mt-5">
+                    <h6 class="fw-bold border-bottom pb-2">
+                      {{ i + 1 }}人目の家族情報
+                      <button
+                        type="button"
+                        class="btn btn-danger btn-sm float-end"
+                        (click)="removeFamilyMember(i)"
+                        [disabled]="family.get('familySupport')?.value === '有'"
+                        *ngIf="!isViewMode"
+                      >
+                        <i class="fa fa-trash"></i> 削除
+                      </button>
+                    </h6>
+                  </div>
+                  <div class="force-break"></div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label class="form-label">扶養状況<span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="familySupport" [ngClass]="{'is-invalid': family.get('familySupport')?.invalid && family.get('familySupport')?.touched}">
+                        <option value="">選択</option>
+                        <option value="有">自分が扶養している</option>
+                        <option value="無">扶養していない</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="family.get('familySupport')?.errors?.['required'] && family.get('familySupport')?.touched">
+                        扶養状況を選択してください
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                      <label class="form-label">障碍者手帳の有無 <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="familyDisabilityHandicap" [ngClass]="{'is-invalid': family.get('familyDisabilityHandicap')?.invalid && family.get('familyDisabilityHandicap')?.touched}">
+                        <option value="">選択してください</option>
+                        <option value="なし">なし</option>
+                        <option value="あり">あり</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="family.get('familyDisabilityHandicap')?.errors?.['required'] && family.get('familyDisabilityHandicap')?.touched">
+                        障碍者手帳の有無を選択してください
+                      </div>
+                    </div>
+
+                    <div class="force-break"></div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">氏 <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyName" [ngClass]="{'is-invalid': family.get('familyName')?.invalid && family.get('familyName')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyName')?.errors?.['required'] && family.get('familyName')?.touched">
+                        氏を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyName')?.errors?.['pattern'] && family.get('familyName')?.touched">
+                        スペースは使用できません
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">名 <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyFirstName" [ngClass]="{'is-invalid': family.get('familyFirstName')?.invalid && family.get('familyFirstName')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyFirstName')?.errors?.['required'] && family.get('familyFirstName')?.touched">
+                        名を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyFirstName')?.errors?.['pattern'] && family.get('familyFirstName')?.touched">
+                        スペースは使用できません
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">氏カナ <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyNameKana" [ngClass]="{'is-invalid': family.get('familyNameKana')?.invalid && family.get('familyNameKana')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyNameKana')?.errors?.['required'] && family.get('familyNameKana')?.touched">
+                        氏カナを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyNameKana')?.errors?.['pattern'] && family.get('familyNameKana')?.touched">
+                        カタカナのみで入力してください
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">名カナ <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyFirstNameKana" [ngClass]="{'is-invalid': family.get('familyFirstNameKana')?.invalid && family.get('familyFirstNameKana')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyFirstNameKana')?.errors?.['required'] && family.get('familyFirstNameKana')?.touched">
+                        名カナを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyFirstNameKana')?.errors?.['pattern'] && family.get('familyFirstNameKana')?.touched">
+                        カタカナのみで入力してください
+                      </div>
+                    </div>
+                    <div class="force-break"></div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">続柄 <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="familyRelationship" [ngClass]="{'is-invalid': family.get('familyRelationship')?.invalid && family.get('familyRelationship')?.touched}">
+                        <option value="">選択してください</option>
+                        <option value="妻">妻</option>
+                        <option value="妻（未届）">妻（未届）</option>
+                        <option value="夫">夫</option>
+                        <option value="夫（未届）">夫（未届）</option>
+                        <option value="実子・養子">実子・養子</option>
+                        <option value="実子・養子以外の子">実子・養子以外の子</option>
+                        <option value="父母・養父母">父母・養父母</option>
+                        <option value="義父母">義父母</option>
+                        <option value="弟妹">弟妹</option>
+                        <option value="兄姉">兄姉</option>
+                        <option value="祖父母">祖父母</option>
+                        <option value="曾祖父母">曾祖父母</option>
+                        <option value="孫">孫</option>
+                        <option value="その他">その他</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="family.get('familyRelationship')?.errors?.['required'] && family.get('familyRelationship')?.touched">
+                        続柄を選択してください
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">性別 <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="familyGender" [ngClass]="{'is-invalid': family.get('familyGender')?.invalid && family.get('familyGender')?.touched}">
+                        <option value="">選択してください</option>
+                        <option value="男性">男性</option>
+                        <option value="女性">女性</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="family.get('familyGender')?.errors?.['required'] && family.get('familyGender')?.touched">
+                        性別を選択してください
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">同居の有無 <span class="text-danger">*</span></label>
+                      <select class="form-select" formControlName="familyLivingTogether" [ngClass]="{'is-invalid': family.get('familyLivingTogether')?.invalid && family.get('familyLivingTogether')?.touched}">
+                        <option value="">選択してください</option>
+                        <option value="有">有</option>
+                        <option value="無">無</option>
+                      </select>
+                      <div class="invalid-feedback" *ngIf="family.get('familyLivingTogether')?.errors?.['required'] && family.get('familyLivingTogether')?.touched">
+                        同居の有無を選択してください
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
+                      <label class="form-label">年収 <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          formControlName="familyIncome"
+                          pattern="^(0|[1-9][0-9]*)$"
+                          [ngClass]="{'is-invalid': family.get('familyIncome')?.invalid && family.get('familyIncome')?.touched}"
+                          placeholder="例: 1000000"
+                        >
+                        <span class="input-group-text">円</span>
+                        <div class="invalid-feedback" *ngIf="family.get('familyIncome')?.errors?.['required'] && family.get('familyIncome')?.touched">
+                          年収を入力してください
+                        </div>
+                        <div class="invalid-feedback" *ngIf="family.get('familyIncome')?.errors?.['pattern'] && family.get('familyIncome')?.touched">
+                          0または先頭に0のない半角数字で入力してください（例：0, 1000）
+                        </div>
+                        <div class="invalid-feedback" *ngIf="family.get('familyIncome')?.errors?.['min'] && family.get('familyIncome')?.touched">
+                          0円以上で入力してください
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="force-break"></div>
+
+                    <div class="col-md-12">
+                      <label class="form-label">生年月日 <span class="text-danger">*</span></label>
+                      <div class="d-flex gap-2">
+                        <select class="form-select" formControlName="familyBirthEra" [ngClass]="{'is-invalid': family.get('familyBirthEra')?.invalid && family.get('familyBirthEra')?.touched}">
+                          <option value="">選択</option>
+                          <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                        </select>
+                        <input type="text" class="form-control" formControlName="familyBirthYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': family.get('familyBirthYear')?.invalid && family.get('familyBirthYear')?.touched}">
+                        <span class="input-group-text">年</span>
+                        <input type="text" class="form-control" formControlName="familyBirthMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': family.get('familyBirthMonth')?.invalid && family.get('familyBirthMonth')?.touched}">
+                        <span class="input-group-text">月</span>
+                        <input type="text" class="form-control" formControlName="familyBirthDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': family.get('familyBirthDay')?.invalid && family.get('familyBirthDay')?.touched}">
+                        <span class="input-group-text">日</span>
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthEra')?.errors?.['required'] && family.get('familyBirthEra')?.touched">
+                        和暦を選択してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthYear')?.errors?.['required'] && family.get('familyBirthYear')?.touched">
+                        年を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthYear')?.errors?.['pattern'] && family.get('familyBirthYear')?.touched">
+                        年は1-2桁の数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthYear')?.errors?.['invalidYear'] && family.get('familyBirthYear')?.touched">
+                        正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthMonth')?.errors?.['required'] && family.get('familyBirthMonth')?.touched">
+                        月を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthMonth')?.errors?.['pattern'] && family.get('familyBirthMonth')?.touched">
+                        月は1-2桁の数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthMonth')?.errors?.['min'] || family.get('familyBirthMonth')?.errors?.['max']">
+                        月は1-12の間で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthDay')?.errors?.['required'] && family.get('familyBirthDay')?.touched">
+                        日を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthDay')?.errors?.['pattern'] && family.get('familyBirthDay')?.touched">
+                        日は1-2桁の数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthDay')?.errors?.['min'] || family.get('familyBirthDay')?.errors?.['max']">
+                        日は1-31の間で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBirthDay')?.errors?.['invalidDay'] && family.get('familyBirthDay')?.touched">
+                        正しい日付を入力してください
+                      </div>
+                    </div>
+                    <div class="force-break"></div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">郵便番号 <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                        <input type="text" class="form-control" placeholder="123" formControlName="familyPostalCode1" [ngClass]="{'is-invalid': family.get('familyPostalCode1')?.invalid && family.get('familyPostalCode1')?.touched}">
+                        <span class="input-group-text">-</span>
+                        <input type="text" class="form-control" placeholder="4567" formControlName="familyPostalCode2" [ngClass]="{'is-invalid': family.get('familyPostalCode2')?.invalid && family.get('familyPostalCode2')?.touched}">
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyPostalCode1')?.errors?.['required'] && family.get('familyPostalCode1')?.touched">
+                        郵便番号（前半）を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyPostalCode1')?.errors?.['pattern'] && family.get('familyPostalCode1')?.touched">
+                        郵便番号（前半）は3桁の半角数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyPostalCode2')?.errors?.['required'] && family.get('familyPostalCode2')?.touched">
+                        郵便番号（後半）を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyPostalCode2')?.errors?.['pattern'] && family.get('familyPostalCode2')?.touched">
+                        郵便番号（後半）は4桁の半角数字で入力してください
+                      </div>
+                    </div>
+                    <div class="force-break"></div>
+
+                    <div class="col-md-10">
+                      <label class="form-label">住所 <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyAddress" [ngClass]="{'is-invalid': family.get('familyAddress')?.invalid && family.get('familyAddress')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyAddress')?.errors?.['required'] && family.get('familyAddress')?.touched">
+                        住所を入力してください
+                      </div>
+                    </div>
+                    <div class="force-break"></div>
+
+                    <div class="col-md-10">
+                      <label class="form-label">住所カナ <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="familyAddressKana" [ngClass]="{'is-invalid': family.get('familyAddressKana')?.invalid && family.get('familyAddressKana')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyAddressKana')?.errors?.['required'] && family.get('familyAddressKana')?.touched">
+                        住所カナを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyAddressKana')?.errors?.['pattern'] && family.get('familyAddressKana')?.touched">
+                        住所カナはカタカナ、半角数字、半角ハイフン、スペースで入力してください
+                      </div>
+                    </div>
+                    <div class="force-break"></div>
+
+                    <div class="col-md-8">
+                      <label class="form-label">マイナンバー（12桁）<span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" minlength="12" maxlength="12" formControlName="familyMyNumber" [ngClass]="{'is-invalid': family.get('familyMyNumber')?.invalid && family.get('familyMyNumber')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyMyNumber')?.errors?.['required'] && family.get('familyMyNumber')?.touched">
+                        マイナンバーを入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyMyNumber')?.errors?.['pattern'] && family.get('familyMyNumber')?.touched">
+                        マイナンバーは12桁の半角数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyMyNumber')?.errors?.['minlength'] || family.get('familyMyNumber')?.errors?.['maxlength']">
+                        マイナンバーは12桁で入力してください
+                      </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end" *ngIf="!isViewMode">
+                      <input type="file" class="form-control" #familyMyNumberFileInput (change)="onFamilyMyNumberFileSelected($event, i)" style="display: none" multiple>
+                      <button class="btn btn-outline-secondary" type="button" (click)="familyMyNumberFileInput.click()">
+                        <i class="fa fa-paperclip">ファイル添付</i>
+                      </button>
+                    </div>
+                    <div *ngIf="familySelectedMyNumberFiles[i]?.length" class="selected-file mt-2 mb-2">
+                      <div *ngFor="let file of familySelectedMyNumberFiles[i]" class="d-flex align-items-center">
+                        <i class="fa fa-file me-2"></i>
+                        <a *ngIf="file.url" [href]="file.url" target="_blank" class="file-name text-primary text-decoration-underline" style="cursor:pointer;">
+                          {{ file.name }}
+                        </a>
+                        <span *ngIf="!file.url">{{ file.name }}</span>
+                        <button class="btn btn-sm btn-outline-danger ms-2" type="button" (click)="onFamilyFileRemove('myNumber', i, file)" *ngIf="!isViewMode">
+                          <i class="fa fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="force-break"></div>
+
+                    <div class="col-md-8">
+                      <label class="form-label">基礎年金番号（10桁）</label>
+                      <input type="text" class="form-control" minlength="10" maxlength="10" formControlName="familyBasicPensionNumber" [ngClass]="{'is-invalid': family.get('familyBasicPensionNumber')?.invalid && family.get('familyBasicPensionNumber')?.touched}">
+                      <div class="invalid-feedback" *ngIf="family.get('familyBasicPensionNumber')?.errors?.['required'] && family.get('familyBasicPensionNumber')?.touched">
+                        基礎年金番号を入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBasicPensionNumber')?.errors?.['pattern'] && family.get('familyBasicPensionNumber')?.touched">
+                        基礎年金番号は10桁の半角数字で入力してください
+                      </div>
+                      <div class="invalid-feedback" *ngIf="family.get('familyBasicPensionNumber')?.errors?.['minlength'] || family.get('familyBasicPensionNumber')?.errors?.['maxlength']">
+                        基礎年金番号は10桁で入力してください
+                      </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end" *ngIf="!isViewMode">
+                      <input type="file" class="form-control" #familyBasicPensionNumberFileInput (change)="onFamilyBasicPensionNumberFileSelected($event, i)" style="display: none" multiple>
+                      <button class="btn btn-outline-secondary" type="button" (click)="familyBasicPensionNumberFileInput.click()">
+                        <i class="fa fa-paperclip">ファイル添付</i>
+                      </button>
+                    </div>
+                    <div *ngIf="familySelectedBasicPensionNumberFiles[i]?.length" class="selected-file mt-2 mb-2">
+                      <div *ngFor="let file of familySelectedBasicPensionNumberFiles[i]" class="d-flex align-items-center">
+                        <i class="fa fa-file me-2"></i>
+                        <a *ngIf="file.url" [href]="file.url" target="_blank" class="file-name text-primary text-decoration-underline" style="cursor:pointer;">
+                          {{ file.name }}
+                        </a>
+                        <span *ngIf="!file.url">{{ file.name }}</span>
+                        <button class="btn btn-sm btn-outline-danger ms-2" type="button" (click)="onFamilyFileRemove('basicPension', i, file)" *ngIf="!isViewMode">
+                          <i class="fa fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-success px-4 shadow" [disabled]="!basicInfoForm.valid">登録</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>

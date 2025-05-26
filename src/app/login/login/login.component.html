@@ -1,6 +1,6 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
-      <div class="col-md-6">
+      <div class="col-md-8">
         <div class="card">
           <div class="card-body">
             <h2 class="card-title text-center mb-4">社会保険管理システム ログイン</h2>
@@ -10,10 +10,10 @@
               <!-- タブ切り替え -->
               <ul class="nav nav-tabs mb-4 d-flex" id="loginTabs" role="tablist" style="border-bottom-width: 2px;">
                 <li class="nav-item flex-fill text-center p-0" role="presentation">
-                  <button class="nav-link active w-100" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" aria-controls="company" aria-selected="false" style="border-radius: 0;">会社用ログイン</button>
+                  <button class="nav-link active w-100" id="company-tab" data-bs-toggle="tab" data-bs-target="#company" type="button" role="tab" aria-controls="company" aria-selected="false" style="border-radius: 0;" (click)="setActiveTab('company')">会社用ログイン</button>
                 </li>
                 <li class="nav-item flex-fill text-center p-0" role="presentation">
-                  <button class="nav-link w-100" id="employee-tab" data-bs-toggle="tab" data-bs-target="#employee" type="button" role="tab" aria-controls="employee" aria-selected="true" style="border-radius: 0;">従業員用ログイン</button>
+                  <button class="nav-link w-100" id="employee-tab" data-bs-toggle="tab" data-bs-target="#employee" type="button" role="tab" aria-controls="employee" aria-selected="true" style="border-radius: 0;" (click)="setActiveTab('employee')">従業員用ログイン</button>
                 </li>
               </ul>
 
@@ -84,7 +84,9 @@
                     </div>
                   </form>
                   <div class="d-grid gap-2 mt-3">
-                    <button type="button" class="btn btn-secondary" (click)="openRegister('company')">
+                    <button type="button" class="btn btn-secondary"
+                      [routerLink]="['/register']"
+                      [queryParams]="{type: 'company'}">
                       新規登録はこちら
                     </button>
                   </div>
@@ -155,25 +157,19 @@
                     </div>
                   </form>
                   <div class="d-grid gap-2 mt-3">
-                    <button type="button" class="btn btn-secondary" (click)="openRegister('employee')">
+                    <button type="button" class="btn btn-secondary"
+                      [routerLink]="['/register']"
+                      [queryParams]="{type: 'employee'}">
                       新規登録はこちら
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            <!-- 新規登録画面 -->
-            <div *ngIf="showRegister">
-              <app-register [registerType]="registerType" (backToLogin)="closeRegister()"></app-register>
-            </div>
 
             <!-- パスワードリセット画面 -->
-            <div *ngIf="showResetPass">
-              <app-reset-pass (backToLogin)="closeResetPass()"></app-reset-pass>
-            </div>
-
-            <div class="d-grid gap-2 mt-3" *ngIf="!showRegister && !showResetPass">
-              <button type="button" class="btn btn-link" (click)="openResetPass()">
+            <div class="d-grid gap-2 mt-3">
+              <button type="button" class="btn btn-link" (click)="resetPassword()">
                 パスワードを忘れた方はこちら
               </button>
             </div>

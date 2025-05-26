@@ -1,0 +1,86 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-success">
+    <div class="container-fluid">
+        <div class="navbar-brand text-white">給与情報管理</div>
+
+        <div class="navbar-brand text-white">
+            <button class="btn btn-outline-light me-2" (click)="goToAllEmployeeList()">
+                <i class="fas fa-list"></i> 従業員情報一覧に戻る
+            </button>
+            <button class="btn btn-outline-light" (click)="goToAdminHome()">
+                <i class="fas fa-home"></i> 管理者ホームに戻る
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-5 min-vh-100">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title fs-5">給与情報一覧</h5>
+          </div>
+          <div class="col-md-12">
+          <!-- 給与情報ヘッダー -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small">社員番号</th>
+                            <th class="small">従業員氏名</th>
+                            <th class="small">社員属性</th>
+                            <th class="small">資格情報</th>
+                            <th class="small">支給年月</th>
+                            <th class="small text-end">支払基礎日数</th>
+                            <th class="small">給与種類</th>
+                            <th class="small">昇給等情報</th>
+                            <th class="small">非固定賃金変更</th>
+                            <th class="small text-end">支給額(通貨)</th>
+                            <th class="small text-end">支給額(現物)</th>
+                            <th class="small text-end">社会保険算定対象総額</th>
+                            <th class="small text-end">支給額(社会保険非対象)</th>
+                            <th class="small text-end">支給総額</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- ローディング表示 -->
+                        <tr *ngIf="!salaryInfoList">
+                            <td colspan="12" class="text-center">
+                                <div class="d-flex justify-content-center align-items-center p-3">
+                                    <div class="spinner-border text-success" role="status">
+                                        <span class="visually-hidden">読み込み中...</span>
+                                    </div>
+                                    <span class="ms-2">データを読み込み中...</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- データがない場合の表示 -->
+                        <tr *ngIf="salaryInfoList && salaryInfoList.length === 0">
+                            <td colspan="12" class="text-center">
+                                データがありません
+                            </td>
+                        </tr>
+                        <!-- データ表示 -->
+                        <tr *ngFor="let salary of salaryInfoList">
+                            <td class="small">{{ salary.employeeId }}</td>
+                            <td class="small">{{ salary.employeeName }}</td>
+                            <td class="small">{{ salary.employeeAttribute }}</td>
+                            <td class="small">{{ salary.qualification }}</td>
+                            <td class="small">{{ salary.paymentDate }}</td>
+                            <td class="small text-end">{{ salary.paymentDays }}</td>
+                            <td class="small">{{ salary.salaryType }}</td>
+                            <td class="small">{{ salary.fixedSalaryChange }}</td>
+                            <td class="small">{{ salary.nonFixedSalaryChange }}</td>
+                            <td class="small text-end">{{ salary.currencyAmount | jpy }}</td>
+                            <td class="small text-end">{{ salary.nonCurrencyAmount | jpy }}</td>
+                            <td class="small text-end">{{ salary.socialInsuranceTotalAmount | jpy }}</td>
+                            <td class="small text-end">{{ salary.nonSocialInsuranceAmount | jpy }}</td>
+                            <td class="small text-end">{{ salary.totalAmount | jpy }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+

@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule, ReactiveFormsModule, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CompanyService } from '../../services/company.service';
-import { Office } from '../office.interface';
+import { Office } from '../../interface/office.interface';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { findPrefecture, PrefectureRange } from '../prefecture-data';
+import { findPrefecture, PrefectureRange } from '../../interface/prefecture-data';
 
 @Component({
   selector: 'app-office-form',

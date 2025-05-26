@@ -1,32 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Firestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from '@angular/fire/firestore';
-
-export interface CompanyProfile {
-  companyId: string;
-  companyName: string;
-  companyEmail: string;
-  createdAt: Date;
-}
-
-export interface EmployeeProfile {
-  userId?: string; //アカウント登録時
-  companyId: string;  //マスターデータ登録時
-  companyName: string; //マスターデータ登録時
-  employeeId: string; //マスターデータ登録時
-  employeeName: string; //マスターデータ登録時
-  employeeAttribute: string; //マスターデータ登録時
-  insuredStatus: string[]; //マスターデータ登録時
-  employeeEmail?: string; //アカウント登録時
-  enrolmentData: boolean; // 在籍・退職フラグ
-  createdAt: Date; //マスターデータ登録時
-  updatedAt?: Date; //マスターデータ更新やアカウント登録時
-  retiredAt?: Date; // 退職登録時
-}
+import { CompanyProfile, EmployeeProfile } from '../interface/employee-company-profile';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  
   constructor(private firestore: Firestore) {}
 
   // 会社プロフィール作成
@@ -35,22 +15,46 @@ export class UserService {
     await setDoc(companyRef, companyProfile);
   }
 
-  // 従業員プロフィール作成
+  // 従業員プロフィール作成・更新
   async createEmployeeProfile(companyId: string, employeeProfile: EmployeeProfile): Promise<void> {
     const employeeRef = doc(this.firestore, `companies/${companyId}/employees/${employeeProfile.employeeId}`);
-    await setDoc(employeeRef, employeeProfile);
-  }
+    const existingDoc = await getDoc(employeeRef);
 
-  // 従業員プロフィール更新
-  async updateEmployeeProfile(companyId: string, employeeProfile: EmployeeProfile): Promise<void> {
-    const employeeRef = doc(this.firestore, `companies/${companyId}/employees/${employeeProfile.employeeId}`);
-    await updateDoc(employeeRef, {
-      employeeName: employeeProfile.employeeName,
-      employeeAttribute: employeeProfile.employeeAttribute,
-      insuredStatus: employeeProfile.insuredStatus,
-      enrolmentData: employeeProfile.enrolmentData,
-      updatedAt: new Date()
-    });
+    if (!existingDoc.exists()) {
+      // 新規作成の場合
+      await setDoc(employeeRef, {
+        ...employeeProfile,
+        createdAt: new Date(),
+      });
+    } else {
+      // 既存データがある場合、未設定のフィールドのみ更新
+      const existingData = existingDoc.data() as EmployeeProfile;
+      const updateData: any = {
+        updatedAt: new Date()
+      };
+
+      // 未設定のフィールドのみを更新対象に追加
+      if (!existingData.employeeName && employeeProfile.employeeName) {
+        updateData.employeeName = employeeProfile.employeeName;
+      }
+      if (!existingData.employeeAttribute && employeeProfile.employeeAttribute) {
+        updateData.employeeAttribute = employeeProfile.employeeAttribute;
+      }
+      if (!existingData.insuredStatus && employeeProfile.insuredStatus) {
+        updateData.insuredStatus = employeeProfile.insuredStatus;
+      }
+      if (existingData.enrolmentData === undefined && employeeProfile.enrolmentData !== undefined) {
+        updateData.enrolmentData = employeeProfile.enrolmentData;
+      }
+      if (!existingData.employeeEmail && employeeProfile.employeeEmail) {
+        updateData.employeeEmail = employeeProfile.employeeEmail;
+      }
+
+      // 更新対象のフィールドがある場合のみ更新を実行
+      if (Object.keys(updateData).length > 1) { // updatedAt以外のフィールドがある場合
+        await updateDoc(employeeRef, updateData);
+      }
+    }
   }
 
   // 従業員退職処理
@@ -109,6 +113,7 @@ export class UserService {
     return null;
   }
 
+
   // companyIdとemailからemployeeIdを取得
   async getEmployeeIdByEmail(companyId: string, email: string): Promise<string | null> {
     const employeesRef = collection(this.firestore, `companies/${companyId}/employees`);
@@ -127,5 +132,40 @@ export class UserService {
     const q = query(employeesRef, where('employeeId', '==', employeeId));
     const querySnapshot = await getDocs(q);
     return !querySnapshot.empty;
+  }
+
+  // メールアドレス変更メソッド
+  async changeEmail(oldEmail: string, newEmail: string): Promise<'company' | 'employee' | null> {
+    // 会社用か判定
+    const companiesRef = collection(this.firestore, 'companies');
+    const companyQuery = query(companiesRef, where('companyEmail', '==', oldEmail));
+    const companySnapshot = await getDocs(companyQuery);
+    if (!companySnapshot.empty) {
+      const companyDoc = companySnapshot.docs[0];
+      await updateDoc(companyDoc.ref, {
+        companyEmail: newEmail,
+        updatedAt: new Date()
+      });
+      return 'company';
+    }
+
+    // 従業員用か判定
+    const companies = await getDocs(companiesRef);
+    for (const company of companies.docs) {
+      const employeesRef = collection(this.firestore, `companies/${company.id}/employees`);
+      const employeeQuery = query(employeesRef, where('employeeEmail', '==', oldEmail));
+      const employeeSnapshot = await getDocs(employeeQuery);
+      if (!employeeSnapshot.empty) {
+        const employeeDoc = employeeSnapshot.docs[0];
+        await updateDoc(employeeDoc.ref, {
+          employeeEmail: newEmail,
+          updatedAt: new Date()
+        });
+        return 'employee';
+      }
+    }
+
+    // どちらにも該当しない場合
+    return null;
   }
 }

@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/user.service';
+import { RouteParamService } from '../../services/route-param.service';
 
 @Component({
   selector: 'app-register',
@@ -12,20 +13,28 @@ import { UserService } from '../../services/user.service';
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-export class RegisterComponent implements OnChanges {
-  @Input() registerType: 'company' | 'employee' = 'company';
-  @Output() backToLogin = new EventEmitter<void>();
-
+export class RegisterComponent implements OnInit {
+  registerType: 'company' | 'employee' = 'company';
   registerForm: FormGroup;
   error: string | null = null;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private userService: UserService) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private userService: UserService,
+    private route: ActivatedRoute,
+    private routeParamService: RouteParamService
+  ) {
     this.registerForm = this.createForm('company');
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['registerType']) {
-      this.registerForm = this.createForm(this.registerType);
+  ngOnInit() {
+    // クエリパラメータからregisterTypeを取得
+    const type = this.routeParamService.getQueryParam(this.route, 'type');
+    if (type === 'employee' || type === 'company') {
+      this.registerType = type;
+      this.registerForm = this.createForm(type);
     }
   }
 
@@ -41,7 +50,10 @@ export class RegisterComponent implements OnChanges {
       return this.fb.group({
         companyName: ['', [Validators.required, Validators.pattern(/^(?!\s+$).+/)]],
         employeeId: ['', [Validators.required, Validators.pattern(/^(?!\s+$).+/)]],
-        displayName: ['', [Validators.required, Validators.pattern(/^(?!\s+$).+/)]],
+        displayName: ['', [
+          Validators.required,
+          Validators.pattern(/^[^\s]*[\u3000]+[^\s]*$/)
+        ]],
         email: ['', [Validators.required, Validators.email, Validators.pattern(/^(?!\s+$).+/)]],
         password: ['', passwordValidators],
         confirmPassword: ['', Validators.required]
@@ -62,6 +74,7 @@ export class RegisterComponent implements OnChanges {
     return password === confirmPassword ? null : { passwordsMismatch: true };
   }
 
+  // 新規登録ボタン
   async onSubmit() {
     if (this.registerForm.invalid) {
       if (this.registerForm.errors?.['passwordsMismatch']) {
@@ -84,6 +97,22 @@ export class RegisterComponent implements OnChanges {
         }
       }
 
+      // 従業員登録の場合、既存の従業員情報と一致するかチェック
+      if (this.registerType === 'employee') {
+        const { employeeId, displayName } = this.registerForm.value;
+        const companyId = await this.userService.getCompanyIdByName(companyName);
+        if (!companyId) {
+          this.error = '会社情報が見つかりません。';
+          return;
+        }
+
+        const employee = await this.userService.getEmployeeProfile(companyId, employeeId);
+        if (!employee || employee.employeeName !== displayName) {
+          this.error = '会社情報に登録されていないため、アカウント作成できません。管理者へ連絡ください';
+          return;
+        }
+      }
+
       // 会社名と登録種別をlocalStorageに保存
       localStorage.setItem('companyName', companyName);
       localStorage.setItem('registerType', this.registerType);
@@ -102,6 +131,13 @@ export class RegisterComponent implements OnChanges {
   }
 
   navigateToLogin() {
-    this.backToLogin.emit();
+    // ログイン情報をクリア
+    localStorage.removeItem('companyId');
+    localStorage.removeItem('companyName');
+    localStorage.removeItem('employeeId');
+    localStorage.removeItem('employeeName');
+    localStorage.removeItem('registerType');
+    // ログイン画面へ遷移
+    this.router.navigate(['/login']);
   }
 }

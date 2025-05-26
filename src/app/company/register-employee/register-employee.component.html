@@ -1,57 +1,101 @@
+<div class="d-flex justify-content-end mt-2 mb-2">
+  <button type="button" class="btn btn-primary" (click)="goHome()">会社ホームに戻る</button>
+</div>
 <div class="container-fluid mt-1 bg-light min-vh-100">
     <div class="row">
       <!-- 左側　従業員情報入力フォーム -->
-      <div class="col-md-6 mb-4">
+      <div class="col-md-12 mb-4">
         <div class="card">
           <div class="card-header">
             <h5 class="mb-0">従業員情報入力フォーム</h5>
           </div>
           <div class="card-body">
             <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
-              <div class="mb-3">
-                <label class="form-label">社員番号 <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" formControlName="employeeId" 
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">社員番号 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="employeeId" 
                   [disabled]="isEditMode"
                   [ngClass]="{'is-invalid': employeeForm.get('employeeId')?.invalid && employeeForm.get('employeeId')?.touched}">
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['required'] && employeeForm.get('employeeId')?.touched">
-                  社員番号を入力してください
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['required'] && employeeForm.get('employeeId')?.touched">
+                    社員番号を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['maxlength'] && employeeForm.get('employeeId')?.touched">
+                    20文字以内で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['pattern'] && employeeForm.get('employeeId')?.touched">
+                    半角英数字とハイフンのみ使用可能です
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['employeeIdExists'] && employeeForm.get('employeeId')?.touched">
+                    この社員番号は既に使用されています
+                  </div>
                 </div>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['maxlength'] && employeeForm.get('employeeId')?.touched">
-                  20文字以内で入力してください
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">従業員氏名（日本語で入力） <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="employeeName"
+                    [ngClass]="{'is-invalid': employeeForm.get('employeeName')?.invalid && employeeForm.get('employeeName')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['required'] && employeeForm.get('employeeName')?.touched">
+                    従業員氏名を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['maxlength'] && employeeForm.get('employeeName')?.touched">
+                    30文字以内で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['pattern'] && employeeForm.get('employeeName')?.touched">
+                    全角文字と全角スペースのみ使用可能です
+                  </div>
                 </div>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['pattern'] && employeeForm.get('employeeId')?.touched">
-                  半角英数字とハイフンのみ使用可能です
-                </div>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeId')?.errors?.['employeeIdExists'] && employeeForm.get('employeeId')?.touched">
-                  この社員番号は既に使用されています
-                </div>
+
               </div>
 
               <div class="mb-3">
-                <label class="form-label">従業員氏名（日本語で入力） <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" formControlName="employeeName"
-                  [ngClass]="{'is-invalid': employeeForm.get('employeeName')?.invalid && employeeForm.get('employeeName')?.touched}">
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['required'] && employeeForm.get('employeeName')?.touched">
-                  従業員氏名を入力してください
-                </div>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['maxlength'] && employeeForm.get('employeeName')?.touched">
-                  30文字以内で入力してください
-                </div>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['pattern'] && employeeForm.get('employeeName')?.touched">
-                  全角文字と全角スペースのみ使用可能です
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">社員属性 <span class="text-danger">*</span></label>
+                <label class="form-label d-flex align-items-center">
+                  社員属性 <span class="text-danger">*</span>
+                  <span
+                    class="ms-2"
+                    tabindex="0"
+                    data-bs-toggle="popover"
+                    data-bs-placement="right"
+                    data-bs-html="true"
+                    data-bs-trigger="focus"
+                    data-bs-custom-class="wide-popover"
+                    data-bs-container="body"
+                    data-bs-content="
+                      <strong>【社員属性の解説】</strong><br>
+                      <ul style='padding-left:1.2em; margin-bottom:0;'>
+                        <li><b>正社員</b>：通常のフルタイム従業員</li>
+                        <li><b>常勤役員</b>：会社の役員で常勤。通常の正社員と同じ扱いになることが多い</li>
+                        <li><b>非常勤役員</b>：会社の役員で非常勤。通常、社会保険の加入対象外であることが多い</li>
+                        <li><b>短時間就労者</b>：週の所定労働時間が通常の労働者の4分の3以上、かつ月の所定労働日数が通常の労働者の4分の3以上である者※</li>
+                        <li><b>短時間労働者（社会保険加入）</b>：短時間就労者以外で、以下の①～⑤を満たす者。※<br>
+                          <ol style='padding-left:1.2em; margin-bottom:0;'>
+                            <li>週の所定労働時間が20時間以上あること</li>
+                            <li>雇用期間が継続して2カ月を超えて見込まれること</li>
+                            <li>賃金の月額が88,000円以上であること</li>
+                            <li>学生でないこと</li>
+                            <li>特定適用事業所または国・地方公共団体に属する事業所に勤めていること</li>
+                          </ol>
+                        </li>
+                        <li><b>短時間労働者（社会保険非加入）</b>：上記①～⑤の要件に該当しない者※</li>
+                        <li><b>派遣・フリーランス</b>：派遣社員や業務委託（派遣元やフリーランス個人で社会保険を負担）</li>
+                        <li><b>その他</b>：上記以外</li>
+                        <li>※ 主に、契約社員や嘱託社員、パート、アルバイトなど</li>
+                      </ul>
+                    "
+                    style="cursor: pointer;"
+                  >
+                    <i class="fa fa-question-circle text-secondary"></i>
+                  </span>
+                </label>
                 <select class="form-select" formControlName="employeeAttribute"
                   [ngClass]="{'is-invalid': employeeForm.get('employeeAttribute')?.invalid && employeeForm.get('employeeAttribute')?.touched}">
                   <option value="">選択してください</option>
                   <option value="正社員">正社員</option>
                   <option value="常勤役員">常勤役員</option>
                   <option value="非常勤役員">非常勤役員</option>
-                  <option value="短時間労働者">短時間労働者</option>
-                  <option value="契約・嘱託社員">契約・嘱託社員</option>
+                  <option value="短時間労働者">短時間就労者</option>
+                  <option value="短時間労働者（社会保険加入）">短時間労働者（社会保険加入）</option>
+                  <option value="短時間労働者（社会保険非加入）">短時間労働者（社会保険非加入）</option>
                   <option value="派遣社員・フリーランス">派遣・フリーランス</option>
                   <option value="その他">その他</option>
                 </select>
@@ -92,6 +136,65 @@
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+        <!-- CSV読み込みカード -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <h5 class="mb-0">CSVファイル読み込み</h5>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="mb-3">
+                  <label class="form-label">CSVファイルを選択してください</label>
+                  <input type="file" class="form-control" accept=".csv" (change)="onFileSelected($event)">
+                  <div class="form-text">
+                    対応フォーマット: CSVファイル（UTF-8）
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <button type="button" class="btn btn-primary" [disabled]="!selectedFile" (click)="uploadCSV()">
+                  CSVファイルを読み込む
+                </button>
+              </div>
+            </div>
+            <!-- アップロードステータス表示 -->
+            <div *ngIf="uploadStatus" class="mt-2">
+              <div class="alert" [ngClass]="{'alert-info': uploadProgress < 100, 'alert-success': uploadProgress === 100}">
+                {{ uploadStatus }}
+                <div *ngIf="uploadProgress > 0" class="progress mt-2">
+                  <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress"></div>
+                </div>
+              </div>
+            </div>
+            <!-- プレビューエリア -->
+            <div class="mt-3" *ngIf="csvPreview.length > 0">
+              <h6>プレビュー</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>社員番号</th>
+                      <th>従業員氏名</th>
+                      <th>社員属性</th>
+                      <th>健康保険</th>
+                      <th>厚生年金</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of csvPreview">
+                      <td>{{row.employeeId}}</td>
+                      <td>{{row.employeeName}}</td>
+                      <td>{{row.employeeAttribute}}</td>
+                      <td>{{row.healthInsurance ? '○' : '×'}}</td>
+                      <td>{{row.pensionInsurance ? '○' : '×'}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -144,59 +247,3 @@
           </div>
         </div>
       </div>
-            <!-- CSV読み込みカード -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">CSVファイル読み込み</h5>
-            </div>
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-md-8">
-                  <div class="mb-3">
-                    <label class="form-label">CSVファイルを選択してください</label>
-                    <input type="file" class="form-control" accept=".csv" (change)="onFileSelected($event)">
-                    <div class="form-text">
-                      対応フォーマット: CSVファイル（UTF-8）
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <button type="button" class="btn btn-primary" [disabled]="!selectedFile" (click)="uploadCSV()">
-                    CSVファイルを読み込む
-                  </button>
-                </div>
-              </div>
-              <!-- プレビューエリア -->
-              <div class="mt-3" *ngIf="csvPreview.length > 0">
-                <h6>プレビュー</h6>
-                <div class="table-responsive">
-                  <table class="table table-sm table-bordered">
-                    <thead>
-                      <tr>
-                        <th>社員番号</th>
-                        <th>従業員氏名</th>
-                        <th>社員属性</th>
-                        <th>健康保険</th>
-                        <th>厚生年金</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let row of csvPreview">
-                        <td>{{row.employeeId}}</td>
-                        <td>{{row.employeeName}}</td>
-                        <td>{{row.employeeAttribute}}</td>
-                        <td>{{row.healthInsurance ? '○' : '×'}}</td>
-                        <td>{{row.pensionInsurance ? '○' : '×'}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-</div>

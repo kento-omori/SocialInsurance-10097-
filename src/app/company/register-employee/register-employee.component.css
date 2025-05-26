@@ -1,0 +1,17 @@
+.wide-popover {
+  max-width: 500px !important;
+  width: 500px !important;  /* 明示的に幅を指定 */
+}
+
+.wide-popover .popover-body {
+  padding: 1rem;
+}
+
+/* 必要に応じて、リストのスタイルも調整 */
+.wide-popover ul {
+  margin-bottom: 0.5rem;
+}
+
+.wide-popover li {
+  margin-bottom: 0.25rem;
+}

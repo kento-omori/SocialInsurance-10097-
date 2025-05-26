@@ -1,0 +1,230 @@
+<div class="d-flex justify-content-end mt-2 mb-2">
+    <button type="button" class="btn btn-primary" (click)="goHome()">会社ホームに戻る</button>
+  </div>
+<div class="container-fluid mt-1 bg-light min-vh-100">
+    <div class="row">
+        <!-- 左上　検索フォーム -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">検索フォーム</h5>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="searchForm">
+                <!-- 社員番号検索 -->
+                <div class="mb-2 row">
+                    <div class="col-md-8 mb-3">
+                        <input type="text" class="form-control" id="employeeId" formControlName="employeeId" placeholder="社員番号を入力">
+                    </div>
+                    <div class="col-md-4 mb-3 d-flex gap-1">
+                        <button type="button" class="btn btn-primary" (click)="searchById()">検索</button>
+                        <button type="button" class="btn btn-secondary" (click)="resetEmployeeId()">リセット</button>
+                    </div>
+                </div>
+                <!-- 従業員氏名検索 -->
+                <div class="mb-2">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <input type="text" class="form-control" id="employeeName" formControlName="employeeName" placeholder="氏名を入力">
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex gap-1">
+                            <button type="button" class="btn btn-primary" (click)="searchByName()">検索</button>
+                            <button type="button" class="btn btn-secondary" (click)="resetEmployeeName()">リセット</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 社員属性検索 -->
+                <div class="mb-2">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <select class="form-select" id="employeeAttribute" formControlName="employeeAttribute">
+                                <option value="">社員属性を選択してください</option>
+                                <option value="正社員">正社員</option>
+                                <option value="常勤役員">常勤役員</option>
+                                <option value="非常勤役員">非常勤役員</option>
+                                <option value="短時間労働者">短時間労働者</option>
+                                <option value="契約・嘱託社員">契約・嘱託社員</option>
+                                <option value="派遣社員・フリーランス">派遣・フリーランス</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex gap-1">
+                            <button type="button" class="btn btn-primary" (click)="searchByAttribute()">検索</button>
+                            <button type="button" class="btn btn-secondary" (click)="resetEmployeeAttribute()">リセット</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 全従業員を表示する -->
+                <div class="mb-2">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <input type="text" class="form-control" id="allEmployeeId" formControlName="allEmployeeId" 
+                                placeholder="右の検索ボタンをクリックして全従業員を表示" [disabled]="true">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button type="button" class="btn btn-primary" (click)="showAllEmployees()">検索</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2" style="min-height: 48px;">
+                    <select
+                        class="form-select mt-2 bg-warning-subtle"
+                        [style.visibility]="searchResults.length > 0 ? 'visible' : 'hidden'"
+                        (change)="onSelectEmployee($event)">
+                        <option value="">検索結果を表示するにはここをクリックして下さい</option>
+                        <option *ngFor="let employee of searchResults; let i = index" [value]="i">
+                            {{employee.employeeName}} ({{employee.employeeId}})
+                        </option>
+                    </select>
+                    <div *ngIf="isSearched && searchForm.get('employeeId')?.value && searchResults.length === 0" class="text-danger mt-2">
+                        検索結果はありません
+                    </div>
+                    <div *ngIf="isSearched && searchForm.get('employeeName')?.value && searchResults.length === 0" class="text-danger mt-2">
+                        検索結果はありません
+                    </div>
+                    <div *ngIf="isSearched && searchForm.get('employeeAttribute')?.value && searchResults.length === 0" class="text-danger mt-2">
+                        検索結果はありません
+                    </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- 右側　権限保持者表示カード -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center" >
+              <h5 class="mb-0">権限保持者一覧</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center" style="width: 10%">No</th>
+                      <th scope="col" style="width: 20%">社員番号</th>
+                      <th scope="col" style="width: 25%">氏名</th>
+                      <th scope="col" style="width: 20%">属性</th>
+                      <th scope="col" style="width: 15%">権限</th>
+                      <th scope="col" style="width: 10%"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let employee of adminEmployees; let i = index">
+                      <td class="text-center">{{i + 1}}</td>
+                      <td>{{employee.employeeId}}</td>
+                      <td>{{employee.employeeName}}</td>
+                      <td>{{employee.employeeAttribute}}</td>
+                      <td>
+                        <ng-container *ngFor="let role of getEmployeeRoles(employee.employeeId)">
+                          <span *ngIf="!role.isDeleted"
+                            [ngClass]="role.type === 'admin' ? 'badge bg-primary me-1' : role.type === 'approver' ? 'badge bg-success me-1' : 'badge bg-secondary me-1'">
+                            {{ role.type === 'admin' ? '管理者' : role.type === 'approver' ? '承認者' : role.type }}
+                          </span>
+                        </ng-container>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm">
+                          <button type="button" class="btn btn-outline-primary" (click)="editRole(employee)">
+                            編集
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 左下　権限追加フォーム -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  <h5 class="mb-0">権限追加フォーム</h5>
+                </div>
+                <div class="card-body" *ngIf="selectedEmployee">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                          <thead>
+                            <tr>
+                              <th scope="col" style="width: 25%">社員番号</th>
+                              <th scope="col" style="width: 25%">従業員氏名</th>
+                              <th scope="col" style="width: 25%">社員属性</th>
+                              <th scope="col" style="width: 25%">権限</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>{{selectedEmployee.employeeId}}</td>
+                              <td>{{selectedEmployee.employeeName}}</td>
+                              <td>{{selectedEmployee.employeeAttribute}}</td>
+                              <td>
+                                <ng-container *ngFor="let role of getSelectedEmployeeRoles()">
+                                  <span
+                                    *ngIf="!role.isDeleted"
+                                    [ngClass]="role.type === 'admin' ? 'badge bg-primary me-1' : role.type === 'approver' ? 'badge bg-success me-1' : 'badge bg-secondary me-1'"
+                                  >
+                                    {{ role.type === 'admin' ? '管理者' : role.type === 'approver' ? '承認者' : role.type }}
+                                  </span>
+                                </ng-container>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body">
+                      <div class="row align-items-center mb-2">
+                        <div class="col-md-4">
+                          <p>管理者権限の追加・削除</p>
+                        </div>
+                        <div class="col-md-4">
+                          <button type="button" class="btn" 
+                            [ngClass]="adminAction === 'add' ? 'btn-primary' : 'btn-outline-primary'"
+                            (click)="toggleAdminAction('add')"
+                            [disabled]="hasRole('admin')">追加</button>
+                          <button type="button" class="btn ms-2" 
+                            [ngClass]="adminAction === 'delete' ? 'btn-danger' : 'btn-outline-danger'"
+                            (click)="toggleAdminAction('delete')"
+                            [disabled]="!hasRole('admin')">削除</button>
+                        </div>
+                        <div class="col-md-4">
+                          <span *ngIf="adminAction">選択中：{{ adminAction === 'add' ? '追加' : '削除' }}</span>
+                          <span *ngIf="!adminAction">選択中：なし</span>
+                        </div>
+                      </div>
+                      <div class="row align-items-center mb-2">
+                        <div class="col-md-4">
+                          <p>承認者権限の追加・削除</p>
+                        </div>
+                        <div class="col-md-4">
+                          <button type="button" class="btn" 
+                            [ngClass]="approverAction === 'add' ? 'btn-primary' : 'btn-outline-primary'"
+                            (click)="toggleApproverAction('add')"
+                            [disabled]="hasRole('approver')">追加</button>
+                          <button type="button" class="btn ms-2" 
+                            [ngClass]="approverAction === 'delete' ? 'btn-danger' : 'btn-outline-danger'"
+                            (click)="toggleApproverAction('delete')"
+                            [disabled]="!hasRole('approver')">削除</button>
+                        </div>
+                        <div class="col-md-4">
+                          <span *ngIf="approverAction">選択中：{{ approverAction === 'add' ? '追加' : '削除' }}</span>
+                          <span *ngIf="!approverAction">選択中：なし</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-3" (click)="closeRoleForm()">キャンセル</button> 
+                        <button type="button" class="btn btn-success" 
+                          (click)="registerRole()" 
+                          [disabled]="isRegistering || !canRegister()">
+                          {{ isRegistering ? '登録中...' : '登録' }}
+                        </button> 
+                    </div>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>

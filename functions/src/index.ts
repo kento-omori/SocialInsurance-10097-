@@ -1,8 +1,16 @@
 import * as admin from 'firebase-admin';
-import { processEmployeeCSV } from './csv/employee';
+import { uploadEmployeeCSV } from './csv/employee';
+import { uploadSalaryCSV } from './csv/salary';
 
-admin.initializeApp();
+// Firebase Admin SDKの初期化
+if (!admin.apps.length) {
+  admin.initializeApp({
+    projectId: 'kensyu10097',
+    storageBucket: 'kensyu10097.firebasestorage.app'
+  });
+}
 
 export {
-  processEmployeeCSV
+  uploadEmployeeCSV,
+  uploadSalaryCSV
 };
