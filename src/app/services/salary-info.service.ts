@@ -29,8 +29,11 @@ export class SalaryInfoService {
     });
   }
 
-  async getSalaryInfo() {
-    const docRef = doc(this.firestore, this.getCollectionPath());
+  async getSalaryInfo(employeeId: string) {
+    if (!employeeId) {
+      throw new Error('Employee ID is required');
+    }
+    const docRef = doc(this.firestore, this.getCollectionPath(employeeId));
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       return docSnap.data();
@@ -39,34 +42,53 @@ export class SalaryInfoService {
     }
   }
   
+  private getCollectionPath(employeeId?: string): string {
+    if (!this.companyId) {
+      throw new Error('Company ID is required');
+    }
+    if (!employeeId) {
+      throw new Error('Employee ID is required');
+    }
+    return `companies/${this.companyId}/employees/${employeeId}/salaryInfo`;
+  }
+
+  // 新規追加ロジック（手入力）
   async addSalaryInfo(salaryInfo: SalaryInfo) {
     if (!this.companyId) {
       throw new Error('Company ID is required');
     }
+    if (!salaryInfo.employeeId) {
+      throw new Error('Employee ID is required');
+    }
+
     const companyProfile = await this.userService.getCompanyProfile(this.companyId);
     this.companyName = companyProfile?.companyName || null;
     
-    const docRef = collection(this.firestore, this.getCollectionPath());
-    await addDoc(
-      docRef, 
-      { 
-        ...salaryInfo,
-        id: docRef.id, 
-        createdAt: new Date(), 
-        companyId: this.companyId, 
-        companyName: this.companyName,
-      });
-    return docRef.id;
+    const docRef = collection(this.firestore, this.getCollectionPath(salaryInfo.employeeId));
+    const newDoc = doc(docRef);  // 新しいドキュメントIDを生成
+    await setDoc(newDoc, { 
+      ...salaryInfo,
+      id: newDoc.id,  // 生成されたIDを直接使用
+      companyId: this.companyId, 
+      companyName: this.companyName,
+      createdAt: new Date(), 
+      updatedAt: new Date()  // 初回登録時もupdatedAtを設定
+    });
   }
 
+  // 給与情報の更新
   async updateSalaryInfo(salaryInfo: SalaryInfo) {
+    if (!salaryInfo.employeeId) {
+      throw new Error('Employee ID is required');
+    }
     if (!salaryInfo.id) {
       throw new Error('Salary info ID is required');
     }
-    const docRef = doc(this.firestore, this.getCollectionPath(), salaryInfo.id);
+
+    const docRef = doc(this.firestore, this.getCollectionPath(salaryInfo.employeeId), salaryInfo.id);
     await updateDoc(docRef, {
       ...salaryInfo,
-      updatedAt: new Date()
+      updatedAt: new Date()  // 更新時はupdatedAtを更新
     });
   }
 
@@ -74,14 +96,13 @@ export class SalaryInfoService {
     if (!salaryInfo.id) {
       throw new Error('Salary info ID is required');
     }
-    const docRef = doc(this.firestore, this.getCollectionPath(), salaryInfo.id);
+    if (!salaryInfo.employeeId) {
+      throw new Error('Employee ID is required');
+    }
+    const docRef = doc(this.firestore, this.getCollectionPath(salaryInfo.employeeId), salaryInfo.id);
     await deleteDoc(docRef);
   }
   
-  getCollectionPath() {
-    return `companies/${this.companyId}/employees/${this.employeeId}/salaryInfo`;
-  }
-
   // 全従業員の給与情報を取得
   subscribeToAllSalaryInfo(): Observable<SalaryInfo[]> {
     return new Observable<SalaryInfo[]>(observer => {
@@ -131,7 +152,7 @@ export class SalaryInfoService {
       }
 
       // 正しいコレクションパスを使用
-      const salaryRef = collection(this.firestore, this.getCollectionPath());
+      const salaryRef = collection(this.firestore, this.getCollectionPath(employeeId));
       const q = query(salaryRef);
 
       const unsubscribe = onSnapshot(q, 
@@ -149,5 +170,30 @@ export class SalaryInfoService {
 
       return () => unsubscribe();
     });
+  }
+
+  // 支給年月と給与種類で給与情報を取得
+  async getSalaryInfoByPaymentDateAndType(employeeId: string, paymentDate: string, salaryType: string): Promise<SalaryInfo | null> {
+    if (!this.companyId) {
+      throw new Error('Company ID is required');
+    }
+    const salaryRef = collection(this.firestore, this.getCollectionPath(employeeId));
+    const q = query(
+      salaryRef,
+      where('paymentDate', '==', paymentDate),
+      where('salaryType', '==', salaryType)
+    );
+    console.log('q', q);
+
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data()
+      } as SalaryInfo;
+    }
+    return null;
   }
 }

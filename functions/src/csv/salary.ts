@@ -14,9 +14,6 @@ const corsHandler = cors({
 // 給与データの型定義
 interface SalaryData {
   '社員番号': string;
-  '従業員氏名': string;
-  '社員属性': string;
-  '資格情報': string;
   '支給年月': string;
   '支払基礎日数': number;
   '給与種類': string;
@@ -48,14 +45,9 @@ const validateSalaryData = async (data: SalaryData[], companyId: string): Promis
   const errors: string[] = [];
   
   // 有効な値の定義
-  const validEmployeeAttributes = ['正社員', '常勤役員', '非常勤役員', '短時間就労者', '短時間労働者（社会保険加入）', '短時間労働者（社会保険非加入）','派遣・フリーランス','その他'];
-  const validQualifications = ['健保', '厚生', '健保・厚生', 'なし'];
   const validSalaryTypes = ['給与', '賞与'];
   const validFixedSalaryChanges = ['変更なし', '昇給', '降給'];
   const validNonFixedSalaryChanges = ['変更なし', '変更あり'];
-
-  // 全角スペースのチェック用正規表現
-  const fullWidthSpaceRegex = /　/;
 
   // 支給年月のフォーマットチェック（YYYY-MM）
   const dateFormatRegex = /^\d{4}-\d{2}$/;
@@ -67,7 +59,7 @@ const validateSalaryData = async (data: SalaryData[], companyId: string): Promis
   data.forEach((salary, index) => {
     // 必須フィールドチェック
     const requiredFields = [
-      '社員番号', '従業員氏名', '社員属性', '資格情報', 
+      '社員番号', 
       '支給年月', '支払基礎日数', '給与種類', '昇給等情報', 
       '非固定賃金変更', '支給額(通貨)', '支給額(現物)',
       '社会保険算定対象総額', '支給額(社会保険非対象)', '支給総額'
@@ -78,21 +70,6 @@ const validateSalaryData = async (data: SalaryData[], companyId: string): Promis
         errors.push(`行${index + 1}: ${field}が入力されていません`);
       }
     });
-
-    // 従業員氏名の全角スペースチェック
-    if (salary['従業員氏名'] && !fullWidthSpaceRegex.test(salary['従業員氏名'])) {
-      errors.push(`行${index + 1}: 従業員氏名は全角スペースで区切ってください`);
-    }
-
-    // 社員属性の有効性チェック
-    if (salary['社員属性'] && !validEmployeeAttributes.includes(salary['社員属性'])) {
-      errors.push(`行${index + 1}: 社員属性「${salary['社員属性']}」は無効な値です`);
-    }
-
-    // 資格情報の有効性チェック
-    if (salary['資格情報'] && !validQualifications.includes(salary['資格情報'])) {
-      errors.push(`行${index + 1}: 資格情報「${salary['資格情報']}」は無効な値です`);
-    }
 
     // 支給年月のフォーマットチェック
     if (salary['支給年月'] && !dateFormatRegex.test(salary['支給年月'])) {
@@ -202,6 +179,20 @@ const validateSalaryData = async (data: SalaryData[], companyId: string): Promis
   };
 };
 
+// 給与と賞与を判別する関数
+const determinePaymentType = (data: SalaryData): 'salary' | 'bonus' => {
+  // 給与種類で判別
+  if (data['給与種類'] === '賞与') {
+    return 'bonus';
+  }
+  // 給与種類が未指定の場合は、支給額の特徴で判別
+  if (data['給与種類'] === '給与' || !data['給与種類']) {
+    return 'salary';
+  }
+  // デフォルトは給与として扱う
+  return 'salary';
+}
+
 export const uploadSalaryCSV = functions.https.onRequest(async (req: functions.https.Request, res: Response) => {
   return corsHandler(req, res, async () => {
     try {
@@ -242,43 +233,36 @@ export const uploadSalaryCSV = functions.https.onRequest(async (req: functions.h
         return;
       }
 
-      // Firestoreへの保存
-      const batch = admin.firestore().batch();
-      for (const salary of parsedData) {
-        const docRef = admin.firestore()
-          .collection('companies')
-          .doc(companyId)
-          .collection('employees')
-          .doc(salary['社員番号'])
-          .collection('salaryInfo')
-          .doc();
-
-        batch.set(docRef, {
-          employeeId: salary['社員番号'],
-          employeeName: salary['従業員氏名'],
-          employeeAttribute: salary['社員属性'],
-          qualification: salary['資格情報'],
-          paymentDate: salary['支給年月'],
-          paymentDays: Number(salary['支払基礎日数']),
-          salaryType: salary['給与種類'],
-          fixedSalaryChange: salary['昇給等情報'],
-          nonFixedSalaryChange: salary['非固定賃金変更'],
-          currencyAmount: Number(salary['支給額(通貨)']),
-          nonCurrencyAmount: Number(salary['支給額(現物)']),
-          socialInsuranceTotalAmount: Number(salary['社会保険算定対象総額']),
-          nonSocialInsuranceAmount: Number(salary['支給額(社会保険非対象)']),
-          totalAmount: Number(salary['支給総額']),
-          companyId,
-          companyName,
-          createdAt: new Date()
-        });
+      // 給与と賞与を分類
+      const salaryData: SalaryData[] = [];
+      const bonusData: SalaryData[] = [];
+      
+      for (const data of parsedData) {
+        const paymentType = determinePaymentType(data);
+        if (paymentType === 'salary') {
+          salaryData.push(data);
+        } else {
+          bonusData.push(data);
+        }
+      }
+      
+      // 給与データの処理
+      if (salaryData.length > 0) {
+        await processSalaryData(companyId, companyName, salaryData);
       }
 
-      await batch.commit();
+      // 賞与データの処理
+      if (bonusData.length > 0) {
+        await processBonusData(companyId, companyName, bonusData);
+      }
+
       res.json({
         success: true,
         message: '保存が完了しました',
-        count: parsedData.length
+        count: {
+          salary: salaryData.length,
+          bonus: bonusData.length
+        }      
       });
 
     } catch (error: any) {
@@ -286,8 +270,230 @@ export const uploadSalaryCSV = functions.https.onRequest(async (req: functions.h
       res.status(500).json({
         success: false,
         message: error.message || '予期せぬエラーが発生しました',
-        details: error  // エラーの詳細を追加
       });
     }
   });
 });
+
+// 給与データの処理
+async function processSalaryData(companyId: string, companyName: string, salaryData: SalaryData[]): Promise<void> {
+  const batch = admin.firestore().batch();
+  
+  for (const salary of salaryData) {
+    // 従業員情報の取得
+    const employeeDoc = await admin.firestore()
+      .collection('companies')
+      .doc(companyId)
+      .collection('employees')
+      .doc(salary['社員番号'])
+      .get();
+
+    if (!employeeDoc.exists) {
+      throw new Error(`社員番号 ${salary['社員番号']} の従業員情報が見つかりません`);
+    }
+    const employeeData = employeeDoc.data();
+    if (!employeeData) {
+      throw new Error(`社員番号 ${salary['社員番号']} の従業員データが不正です`);
+    }
+
+    // 既存の給与情報を検索
+    const existingSalaryQuery = await admin.firestore()
+      .collection('companies')
+      .doc(companyId)
+      .collection('employees')
+      .doc(salary['社員番号'])
+      .collection('salaryInfo')
+      .where('paymentDate', '==', salary['支給年月'])
+      .where('salaryType', '==', salary['給与種類'])
+      .get();
+
+    const salaryData = {
+      employeeId: salary['社員番号'],
+      employeeName: `${employeeData.lastName}　${employeeData.firstName}`,
+      employeeAttribute: employeeData.employeeAttribute,
+      qualification: employeeData.insuredStatus ? 
+        (employeeData.insuredStatus.includes('health') && employeeData.insuredStatus.includes('pension') ? '健保・厚生' :
+         employeeData.insuredStatus.includes('health') ? '健保' :
+         employeeData.insuredStatus.includes('pension') ? '厚生' : 'なし') : 'なし',
+      paymentDate: salary['支給年月'],
+      paymentDays: Number(salary['支払基礎日数']),
+      salaryType: salary['給与種類'],
+      fixedSalaryChange: salary['昇給等情報'],
+      nonFixedSalaryChange: salary['非固定賃金変更'],
+      currencyAmount: Number(salary['支給額(通貨)']),
+      nonCurrencyAmount: Number(salary['支給額(現物)']),
+      socialInsuranceTotalAmount: Number(salary['社会保険算定対象総額']),
+      nonSocialInsuranceAmount: Number(salary['支給額(社会保険非対象)']),
+      totalAmount: Number(salary['支給総額']),
+      companyId,
+      companyName,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    if (!existingSalaryQuery.empty) {
+      // 既存データがある場合は更新
+      const existingDoc = existingSalaryQuery.docs[0];
+      batch.update(existingDoc.ref, {
+        ...salaryData,
+        updatedAt: new Date()
+      });
+    } else {
+      console.log('新規データとして追加');
+      // 新規データの場合は追加
+      const docRef = admin.firestore()
+        .collection('companies')
+        .doc(companyId)
+        .collection('employees')
+        .doc(salary['社員番号'])
+        .collection('salaryInfo')
+        .doc();
+      
+      batch.set(docRef, {
+        ...salaryData,
+        id: docRef.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+  }
+
+  await batch.commit();
+}
+
+// 賞与データの処理
+async function processBonusData(companyId: string, companyName: string, bonusData: SalaryData[]): Promise<void> {
+  const batch = admin.firestore().batch();
+  
+  for (const bonus of bonusData) {
+    // 従業員情報の取得
+    const employeeDoc = await admin.firestore()
+      .collection('companies')
+      .doc(companyId)
+      .collection('employees')
+      .doc(bonus['社員番号'])
+      .get();
+
+    if (!employeeDoc.exists) {
+      throw new Error(`社員番号 ${bonus['社員番号']} の従業員情報が見つかりません`);
+    }
+    const employeeData = employeeDoc.data();
+    if (!employeeData) {
+      throw new Error(`社員番号 ${bonus['社員番号']} の従業員データが不正です`);
+    }
+
+    // 標準報酬賞与額の計算（社会保険算定対象総額の1000円未満を切り捨て）
+    const socialInsuranceTotalAmount = Number(bonus['社会保険算定対象総額']);
+    const standardBonusAmount = Math.floor(socialInsuranceTotalAmount / 1000) * 1000;
+
+    // 既存の賞与情報を検索
+    const existingBonusQuery = await admin.firestore()
+      .collection('companies')
+      .doc(companyId)
+      .collection('employees')
+      .doc(bonus['社員番号'])
+      .collection('salaryInfo')
+      .where('paymentDate', '==', bonus['支給年月'])
+      .where('salaryType', '==', bonus['給与種類'])
+      .get();
+
+    const bonusData = {
+      employeeId: bonus['社員番号'],
+      employeeName: `${employeeData.lastName}　${employeeData.firstName}`,
+      employeeAttribute: employeeData.employeeAttribute,
+      qualification: employeeData.insuredStatus ? 
+        (employeeData.insuredStatus.includes('health') && employeeData.insuredStatus.includes('pension') ? '健保・厚生' :
+         employeeData.insuredStatus.includes('health') ? '健保' :
+         employeeData.insuredStatus.includes('pension') ? '厚生' : 'なし') : 'なし',
+      paymentDate: bonus['支給年月'],
+      paymentDays: Number(bonus['支払基礎日数']),
+      salaryType: bonus['給与種類'],
+      fixedSalaryChange: bonus['昇給等情報'],
+      nonFixedSalaryChange: bonus['非固定賃金変更'],
+      currencyAmount: Number(bonus['支給額(通貨)']),
+      nonCurrencyAmount: Number(bonus['支給額(現物)']),
+      socialInsuranceTotalAmount: Number(bonus['社会保険算定対象総額']),
+      nonSocialInsuranceAmount: Number(bonus['支給額(社会保険非対象)']),
+      totalAmount: Number(bonus['支給総額']),
+      companyId,
+      companyName
+    };
+
+    if (!existingBonusQuery.empty) {
+      // 既存データがある場合は更新
+      const existingDoc = existingBonusQuery.docs[0];
+      batch.update(existingDoc.ref, {
+        ...bonusData,
+        updatedAt: new Date()
+      });
+    } else {
+      // 新規データの場合は追加
+      const docRef = admin.firestore()
+        .collection('companies')
+        .doc(companyId)
+        .collection('employees')
+        .doc(bonus['社員番号'])
+        .collection('salaryInfo')
+        .doc();
+      
+      batch.set(docRef, {
+        ...bonusData,
+        id: docRef.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+
+    // 標準報酬賞与額の情報を保存
+    // 既存の標準報酬賞与額情報を検索
+    const existingStandardRemunerationQuery = await admin.firestore()
+      .collection('companies')
+      .doc(companyId)
+      .collection('employees')
+      .doc(bonus['社員番号'])
+      .collection('standardRemuneration')
+      .where('standardRemunerationDate', '==', bonus['支給年月'])
+      .where('salaryType', '==', bonus['給与種類'])
+      .get();
+
+    const standardRemunerationData = {
+      employeeId: bonus['社員番号'],
+      employeeName: `${employeeData.lastName}　${employeeData.firstName}`,
+      employeeAttribute: employeeData.employeeAttribute,
+      qualification: employeeData.insuredStatus ? 
+        (employeeData.insuredStatus.includes('health') && employeeData.insuredStatus.includes('pension') ? '健保・厚生' :
+         employeeData.insuredStatus.includes('health') ? '健保' :
+         employeeData.insuredStatus.includes('pension') ? '厚生' : 'なし') : 'なし',
+      salaryType: bonus['給与種類'],
+      standardRemuneration: standardBonusAmount,
+      standardRemunerationDate: bonus['支給年月'],
+      companyId
+    };
+
+    if (!existingStandardRemunerationQuery.empty) {
+      // 既存データがある場合は更新
+      const existingDoc = existingStandardRemunerationQuery.docs[0];
+      batch.update(existingDoc.ref, {
+        ...standardRemunerationData,
+        updatedAt: new Date()
+      });
+    } else {
+      // 新規データの場合は追加
+      const standardRemunerationRef = admin.firestore()
+        .collection('companies')
+        .doc(companyId)
+        .collection('employees')
+        .doc(bonus['社員番号'])
+        .collection('standardRemuneration')
+        .doc();
+      
+      batch.set(standardRemunerationRef, {
+        ...standardRemunerationData,
+        id: standardRemunerationRef.id,
+        createdAt: new Date()
+      });
+    }
+  }
+
+  await batch.commit();
+}

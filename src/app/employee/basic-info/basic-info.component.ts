@@ -214,10 +214,9 @@ export class BasicInfoComponent implements OnInit, OnDestroy {
         try {
           this.employeeProfile = await this.userService.getEmployeeProfile(companyId, employeeId);
           // 氏名を分割してフォームにセット
-          if (this.employeeProfile?.employeeName) {
-            const [lastName, firstName] = this.employeeProfile.employeeName.split(/[s　]+/);
-            this.basicInfoForm.get('employeeInfo.lastName')?.setValue(lastName || '');
-            this.basicInfoForm.get('employeeInfo.firstName')?.setValue(firstName || '');
+          if (this.employeeProfile?.lastName && this.employeeProfile?.firstName) {
+            this.basicInfoForm.get('employeeInfo.lastName')?.setValue(this.employeeProfile.lastName || '');
+            this.basicInfoForm.get('employeeInfo.firstName')?.setValue(this.employeeProfile.firstName || '');
           }
           if (this.employeeProfile?.employeeAttribute) {
             this.basicInfoForm.get('officeInfo.employeeAttribute')?.setValue(this.employeeProfile.employeeAttribute);
@@ -642,10 +641,9 @@ export class BasicInfoComponent implements OnInit, OnDestroy {
     // プロフィール情報を再セット
     if (this.employeeProfile) {
       // 氏名
-      if (this.employeeProfile.employeeName) {
-        const [lastName, firstName] = this.employeeProfile.employeeName.split(/[\s　]+/);
-        this.basicInfoForm.get('employeeInfo.lastName')?.setValue(lastName || '');
-        this.basicInfoForm.get('employeeInfo.firstName')?.setValue(firstName || '');
+      if (this.employeeProfile.lastName && this.employeeProfile.firstName) {
+        this.basicInfoForm.get('employeeInfo.lastName')?.setValue(this.employeeProfile.lastName || '');
+        this.basicInfoForm.get('employeeInfo.firstName')?.setValue(this.employeeProfile.firstName || '');
       }
       // 社員属性
       if (this.employeeProfile.employeeAttribute) {

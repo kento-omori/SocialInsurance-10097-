@@ -1,1 +1,151 @@
-<p>premiums works!</p>
+<nav class="navbar navbar-expand-lg navbar-light bg-success">
+    <div class="container-fluid">
+        <div class="navbar-brand text-white">保険料</div>
+
+        <div class="navbar-brand text-white">
+            <button class="btn btn-outline-light me-2" (click)="goToAllEmployeeList()">
+                <i class="fas fa-list"></i> 従業員情報一覧に戻る
+            </button>
+            <button class="btn btn-outline-light" (click)="goToAdminHome()">
+                <i class="fas fa-home"></i> 管理者ホームに戻る
+            </button>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container-fluid mt-5 min-vh-100">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <!-- 検索フォーム -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="paymentDate" class="mb-2">支給年月</label>
+              <input type="month" class="form-control" id="paymentDate" [(ngModel)]="selectedPaymentDate">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label for="salaryType" class="mb-2">給与種類</label>
+              <select class="form-control" id="salaryType" [(ngModel)]="selectedSalaryType">
+                <option value="">選択してください</option>
+                <option value="月額">給与</option>
+                <option value="賞与">賞与</option>
+                <option value="すべて">すべて</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-success" (click)="loadData()">表示</button>
+          </div>
+        </div>
+
+        <div class="container-fluid mt-5 min-vh-100">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="col-md-12">
+                <!-- ヘッダー -->
+                  <div class="table-responsive">
+                      <table class="table table-bordered">
+                          <thead>
+                              <tr>
+                                  <th rowspan="2" class="small text-center">社員番号</th>
+                                  <th rowspan="2" class="small text-center">従業員氏名</th>
+                                  <th rowspan="2" class="small text-center">資格情報</th>
+                                  <th colspan="4" class="small text-center">保険料（従業員負担分）</th>
+                                  <th colspan="5" class="small text-center">保険料（会社負担分）※ 概算</th>
+                                  <th rowspan="2" class="small text-center">総計</th>
+                              </tr>
+                              <tr>
+                                  <th class="small text-center">健康保険</th>
+                                  <th class="small text-center">介護保険</th>
+                                  <th class="small text-center">厚生年金</th>
+                                  <th class="small text-center">合　　計</th>
+                                  <th class="small text-center">健康保険</th>
+                                  <th class="small text-center">介護保険</th>
+                                  <th class="small text-center">厚生年金</th>
+                                  <th class="small text-center">子ども子育て拠出金</th>
+                                  <th class="small text-center">合　　計</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <!-- ローディング表示 -->
+                              <tr *ngIf="isLoading">
+                                  <td colspan="12" class="text-center">
+                                      <div class="d-flex justify-content-center align-items-center p-3">
+                                          <div class="spinner-border text-success" role="status">
+                                              <span class="visually-hidden">読み込み中...</span>
+                                          </div>
+                                          <span class="ms-2">データを読み込み中...</span>
+                                      </div>
+                                  </td>
+                              </tr>
+                              <!-- データがない場合の表示 -->
+                              <tr *ngIf="isLoading === false && premiumsList && premiumsList.length === 0">
+                                  <td colspan="12" class="text-center">
+                                      データがありません
+                                  </td>
+                              </tr>
+                              <tr *ngFor="let p of premiumsList">
+                                  <td class="small text-center">{{ p.employeeId }}</td>
+                                  <td class="small text-center">{{ p.employeeName }}</td>
+                                  <td class="small text-center">{{ p.qualification }}</td>
+                                  <td class="small text-end" [ngClass]="{'bg-secondary text-white': p.healthInsurancePremium === null}">
+                                    {{ p.display_healthInsurancePremium === null ? '-' : (p.display_healthInsurancePremium | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.nursingCarePremium === null}">
+                                    {{ p.display_nursingCarePremium === null ? '-' : (p.display_nursingCarePremium | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.pensionInsurancePremium === null}">
+                                    {{ p.display_pensionInsurancePremium === null ? '-' : (p.display_pensionInsurancePremium | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.employeeShare === null}">
+                                    {{ p.display_employeeShare === null ? '-' : (p.display_employeeShare | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.healthInsurancePremiumCompany === null}">
+                                    {{ p.display_healthInsurancePremiumCompany === null ? '-' : (p.display_healthInsurancePremiumCompany | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.nursingCarePremiumCompany === null}">
+                                    {{ p.display_nursingCarePremiumCompany === null ? '-' : (p.display_nursingCarePremiumCompany | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.pensionInsurancePremiumCompany === null}">
+                                    {{ p.display_pensionInsurancePremiumCompany === null ? '-' : (p.display_pensionInsurancePremiumCompany | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.childRearingContribution === null}">
+                                    {{ p.display_childRearingContribution === null ? '-' : (p.display_childRearingContribution | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.companyShare === null}">
+                                    {{ p.display_companyShare === null ? '-' : (p.display_companyShare | jpy) }}
+                                  </td>
+                                  <td class="small text-end"[ngClass]="{'bg-secondary text-white': p.totalPremium === null}">
+                                    {{ p.display_totalPremium === null ? '-' : '-' }}
+                                  </td>
+                              </tr>
+                              <!-- 合計行 -->
+                              <tr class="table-secondary fw-bold">
+                                  <td colspan="3" class="small text-center">合計（正確な納付額）</td>
+                                  <td class="small text-end">{{ totalHealthInsurance | jpy }}</td>
+                                  <td class="small text-end">{{ totalNursingCare | jpy }}</td>
+                                  <td class="small text-end">{{ totalPension | jpy }}</td>
+                                  <td class="small text-end">{{ totalEmployeeShare | jpy }}</td>
+                                  <td class="small text-end">{{ totalHealthInsuranceCompany | jpy }}</td>
+                                  <td class="small text-end">{{ totalNursingCareCompany | jpy }}</td>
+                                  <td class="small text-end">{{ totalPensionCompany | jpy }}</td>
+                                  <td class="small text-end">{{ totalChildRearing | jpy }}</td>
+                                  <td class="small text-end">{{ totalCompanyShare | jpy }}</td>
+                                  <td class="small text-end">{{ totalAll | jpy }}</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+

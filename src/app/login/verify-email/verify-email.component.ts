@@ -103,16 +103,16 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
             localStorage.removeItem('companyName');
             return;
           }
-          const userProfile: EmployeeProfile = {　　　　　　　　　　　　　　　//ここに注意！register-employeeコンポーネントで登録されたデータが上書きされないようにする
-            employeeId: localStorage.getItem('employeeId') || '',
-            employeeName: localStorage.getItem('employeeName') || '',
+          const employeeId = localStorage.getItem('employeeId') || '';
+          const existingEmployee = await this.userService.getEmployeeProfile(companyId, employeeId);
+          if (!existingEmployee) {
+            this.errorMessage = '従業員情報が見つかりません。';
+            return;
+          }
+          const userProfile: EmployeeProfile = {
+            ...existingEmployee,
             employeeEmail: user.email!,
-            companyId: companyId,
-            companyName: companyName,
-            employeeAttribute: '',
-            insuredStatus: [],
-            enrolmentData: true,
-            createdAt: new Date()
+            updatedAt: new Date()
           };
           this.employeeId = localStorage.getItem('employeeId') || '';
           await this.userService.createEmployeeProfile(companyId, userProfile);

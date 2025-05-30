@@ -113,7 +113,7 @@ export class RoleComponent implements OnInit, OnDestroy {
     this.isSearched = true;
 
     this.searchResults = this.allEmployees.filter(emp => 
-      emp.employeeName.startsWith(employeeName) || emp.employeeName === employeeName
+      emp.lastName.startsWith(employeeName) || emp.firstName.startsWith(employeeName) || emp.lastName + emp.firstName === employeeName
     );
   }
 

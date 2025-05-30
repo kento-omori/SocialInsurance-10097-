@@ -73,7 +73,7 @@
                         (change)="onSelectEmployee($event)">
                         <option value="">検索結果を表示するにはここをクリックして下さい</option>
                         <option *ngFor="let employee of searchResults; let i = index" [value]="i">
-                            {{employee.employeeName}} ({{employee.employeeId}})
+                            {{employee.lastName + employee.firstName}} ({{employee.employeeId}})
                         </option>
                     </select>
                     <div *ngIf="isSearched && searchForm.get('employeeId')?.value && searchResults.length === 0" class="text-danger mt-2">
@@ -113,7 +113,7 @@
                     <tr *ngFor="let employee of adminEmployees; let i = index">
                       <td class="text-center">{{i + 1}}</td>
                       <td>{{employee.employeeId}}</td>
-                      <td>{{employee.employeeName}}</td>
+                      <td>{{employee.lastName + employee.firstName}}</td>
                       <td>{{employee.employeeAttribute}}</td>
                       <td>
                         <ng-container *ngFor="let role of getEmployeeRoles(employee.employeeId)">
@@ -158,7 +158,7 @@
                           <tbody>
                             <tr>
                               <td>{{selectedEmployee.employeeId}}</td>
-                              <td>{{selectedEmployee.employeeName}}</td>
+                              <td>{{selectedEmployee.lastName + selectedEmployee.firstName}}</td>
                               <td>{{selectedEmployee.employeeAttribute}}</td>
                               <td>
                                 <ng-container *ngFor="let role of getSelectedEmployeeRoles()">

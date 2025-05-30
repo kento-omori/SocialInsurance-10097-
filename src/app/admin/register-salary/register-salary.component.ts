@@ -6,12 +6,13 @@ import { RouteParamService } from '../../services/route-param.service';
 import { EmployeeProfile } from '../../interface/employee-company-profile';
 import { UserService } from '../../services/user.service';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { Observable, of, firstValueFrom } from 'rxjs';
 import { debounceTime, switchMap, first } from 'rxjs/operators';
 import { SalaryInfoService } from '../../services/salary-info.service';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpEventType } from '@angular/common/http';
+import { InsurancePremiumionService } from '../../services/insurance-premiumion.service';
 
 @Component({
   selector: 'app-register-salary',
@@ -42,7 +43,8 @@ export class RegisterSalaryComponent implements OnInit {
     private formBuilder: FormBuilder,
     private salaryInfoService: SalaryInfoService,
     private toast: ToastrService,
-    private http: HttpClient
+    private http: HttpClient,
+    private insurancePremiumionService: InsurancePremiumionService
   ){
     this.salaryForm = this.formBuilder.group({
       employeeId: ['', {
@@ -69,8 +71,8 @@ export class RegisterSalaryComponent implements OnInit {
       totalAmount: [{value: '', disabled: true}, Validators.required]
     });
 
-    // 支給額の変更を監視して合計額を自動計算
-    this.salaryForm.valueChanges.subscribe(() => {
+  // 支給額の変更を監視して合計額を自動計算
+  this.salaryForm.valueChanges.subscribe(() => {
       const currencyAmount = Number(this.salaryForm.get('currencyAmount')?.value || 0);
       const nonCurrencyAmount = Number(this.salaryForm.get('nonCurrencyAmount')?.value || 0);
       const nonSocialInsuranceAmount = Number(this.salaryForm.get('nonSocialInsuranceAmount')?.value || 0);
@@ -97,7 +99,7 @@ export class RegisterSalaryComponent implements OnInit {
           const profile = await this.userService.getEmployeeProfile(this.companyId, employeeId);
           if (profile && profile.enrolmentData) {
             this.salaryForm.patchValue({
-              employeeName: profile.employeeName,
+              employeeName: profile.lastName + ' ' + profile.firstName,
               employeeAttribute: profile.employeeAttribute,
               qualification: this.formatQualification(profile.insuredStatus)
             });
@@ -138,10 +140,8 @@ export class RegisterSalaryComponent implements OnInit {
         const currencyAmount = Number(formValue.currencyAmount);
         const nonCurrencyAmount = Number(formValue.nonCurrencyAmount);
         const nonSocialInsuranceAmount = Number(formValue.nonSocialInsuranceAmount);
-        
         // 社会保険算定対象総額の計算（通貨支給額 + 現物支給額）
         const socialInsuranceTotalAmount = currencyAmount + nonCurrencyAmount;
-        
         // 支給総額の計算（社会保険算定対象総額 + 社会保険非対象額）
         const totalAmount = socialInsuranceTotalAmount + nonSocialInsuranceAmount;
         
@@ -156,17 +156,45 @@ export class RegisterSalaryComponent implements OnInit {
         };
 
         try {
-          await this.salaryInfoService.addSalaryInfo(salaryInfo);
-          this.toast.success('給与情報の追加に成功しました');
+          // 同じ支給年月と給与種類のデータが存在するかチェック
+          const existingSalary = await this.salaryInfoService.getSalaryInfoByPaymentDateAndType(
+            formValue.employeeId,
+            formValue.paymentDate,
+            formValue.salaryType
+          );
+
+          if (existingSalary) {
+            // 既存データが存在する場合は更新
+            await this.salaryInfoService.updateSalaryInfo({
+              ...salaryInfo,
+              id: existingSalary.id  // 既存のFirestoreドキュメントIDを使用
+            });
+            this.toast.success('給与情報の更新に成功しました');
+          } else {
+            // 新規データの場合は追加
+            await this.salaryInfoService.addSalaryInfo(salaryInfo);
+            this.toast.success('給与情報の追加に成功しました');
+          }
+          
           this.clearForm();
+
+          // 保険料計算のトリガーを発火
+          if (this.companyId) {
+            this.insurancePremiumionService.triggerPremiumCalculation([{
+              companyId: this.companyId,
+              employeeId: formValue.employeeId,
+              paymentDate: formValue.paymentDate,
+              salaryType: formValue.salaryType
+            }]);
+          }
         } catch(error) {
-          console.error('給与情報の追加に失敗しました:', error);
-          this.toast.error('給与情報の追加に失敗しました');
+          console.error('給与情報の処理に失敗しました:', error);
+          this.toast.error('給与情報の処理に失敗しました');
         }
       }
     } catch(error) {
-      console.error('給与情報の追加に失敗しました:', error);
-      this.toast.error('給与情報の追加に失敗しました');
+      console.error('給与情報の処理に失敗しました:', error);
+      this.toast.error('給与情報の処理に失敗しました');
     }
   }
 
@@ -228,50 +256,82 @@ export class RegisterSalaryComponent implements OnInit {
   // CSVファイルの読み込みとプレビュー表示
   private readCSVFile(file: File): void {
     const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
+    reader.onload = async (e: ProgressEvent<FileReader>) => {
       const content = e.target?.result as string;
-      this.parseCSVContent(content);
+      await this.parseCSVContent(content);
     };
     reader.readAsText(file, 'UTF-8');
   }
 
   // CSVコンテンツのパース
-  private parseCSVContent(content: string): void {
+  private async parseCSVContent(content: string): Promise<void> {
     const lines = content.split('\n');
     this.csvPreview = [];
+    const employeeIds = new Set<string>();
 
-    // ヘッダー行をスキップして2行目から処理
+    // まず社員番号を収集
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (line) {
         const columns = line.split(',');
-        if (columns.length >= 12) {
-          // 数値の変換を確実に行う
-          const paymentDays = parseInt(columns[5].trim(), 10);
-          const currencyAmount = parseInt(columns[9].trim(), 10);
-          const nonCurrencyAmount = parseInt(columns[10].trim(), 10);
-          const socialInsuranceTotalAmount = parseInt(columns[11].trim(), 10);
-          const nonSocialInsuranceAmount = parseInt(columns[12].trim(), 10);
-          const totalAmount = parseInt(columns[13].trim(), 10);
-
-          this.csvPreview.push({
-            employeeId: columns[0].trim(),
-            employeeName: columns[1].trim(),
-            employeeAttribute: columns[2].trim(),
-            qualification: columns[3].trim(),
-            paymentDate: columns[4].trim(),
-            paymentDays: isNaN(paymentDays) ? 0 : paymentDays,
-            salaryType: columns[6].trim(),
-            fixedSalaryChange: columns[7].trim(),
-            nonFixedSalaryChange: columns[8].trim(),
-            currencyAmount: isNaN(currencyAmount) ? 0 : currencyAmount,
-            nonCurrencyAmount: isNaN(nonCurrencyAmount) ? 0 : nonCurrencyAmount,
-            socialInsuranceTotalAmount: isNaN(socialInsuranceTotalAmount) ? 0 : socialInsuranceTotalAmount,
-            nonSocialInsuranceAmount: isNaN(nonSocialInsuranceAmount) ? 0 : nonSocialInsuranceAmount,
-            totalAmount: isNaN(totalAmount) ? 0 : totalAmount
-          });
+        if (columns.length >= 1) {
+          const employeeId = columns[0].trim();
+          if (employeeId) {
+            employeeIds.add(employeeId);
+          }
         }
       }
+    }
+
+    try {
+      // 収集した社員番号の従業員情報を取得
+      const companyId = this.routeParamService.getCompanyId();
+      const employees = await this.userService.getEmployees(companyId);
+      const employeeProfiles = employees
+        .filter(emp => employeeIds.has(emp.employeeId))
+        .reduce((acc, emp) => {
+          acc[emp.employeeId] = emp;
+          return acc;
+        }, {} as { [key: string]: any });
+
+      // 従業員情報を取得した後にCSVデータを処理
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line) {
+          const columns = line.split(',');
+          if (columns.length >= 11) { // 必要なカラム数を11に変更
+            const employeeId = columns[0].trim();
+            const employeeProfile = employeeProfiles[employeeId];
+
+            // 従業員情報が存在しない場合はスキップ
+            if (!employeeProfile) {
+              continue;
+            }
+
+            const previewRow = {
+              employeeId: employeeId || '',
+              employeeName: `${employeeProfile.lastName || ''} ${employeeProfile.firstName || ''}`.trim() || '不明',
+              employeeAttribute: employeeProfile.employeeAttribute || '不明',
+              qualification: this.formatQualification(employeeProfile.insuredStatus || []) || '不明',
+              paymentDate: columns[1]?.trim() || '',
+              paymentDays: columns[2]?.trim() || '0',
+              salaryType: columns[3]?.trim() || '',
+              fixedSalaryChange: columns[4]?.trim() || '',
+              nonFixedSalaryChange: columns[5]?.trim() || '',
+              currencyAmount: columns[6]?.trim() || '0',
+              nonCurrencyAmount: columns[7]?.trim() || '0',
+              socialInsuranceTotalAmount: columns[8]?.trim() || '0',
+              nonSocialInsuranceAmount: columns[9]?.trim() || '0',
+              totalAmount: columns[10]?.trim() || '0'
+            };
+
+            this.csvPreview.push(previewRow);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('CSVの処理中にエラーが発生しました:', error);
+      this.toast.error('CSVの処理中にエラーが発生しました');
     }
   }
 
@@ -306,12 +366,26 @@ export class RegisterSalaryComponent implements OnInit {
             if (event.type === HttpEventType.UploadProgress) {
               this.uploadProgress = Math.round(100 * (event.loaded / (event.total || 1)));
             } else if (event.type === HttpEventType.Response) {
-              const response = event.body as { success: boolean; message: string; count: number; details?: any };
+              const response = event.body as { success: boolean; message: string; count: { salary: number; bonus: number }; details?: any };
               if (response.success) {
-                this.uploadStatus = `CSVファイルのアップロードと保存が完了しました！（${response.count}件のデータを保存）`;
+                const totalCount = response.count.salary + response.count.bonus;
+                const message = `CSVファイルのアップロードと保存が完了しました！（月額：${response.count.salary}件、賞与：${response.count.bonus}件、合計：${totalCount}件のデータを保存）`;
+                this.uploadStatus = message;
                 this.selectedFile = null;
                 this.csvPreview = [];
                 this.uploadProgress = 0;
+                this.toast.success('給与情報の登録に成功しました');
+
+                // 保険料計算のトリガーを発火（CSVの全従業員情報を渡す）
+                if (this.companyId && this.csvPreview.length > 0) {
+                  const calculations = this.csvPreview.map(row => ({
+                    companyId: this.companyId,
+                    employeeId: row.employeeId,
+                    paymentDate: row.paymentDate,
+                    salaryType: row.salaryType
+                  }));
+                  this.insurancePremiumionService.triggerPremiumCalculation(calculations);
+                }
               } else {
                 this.uploadStatus = `アップロードに失敗しました: ${response.message}`;
                 console.error('エラーの詳細:', response.details);

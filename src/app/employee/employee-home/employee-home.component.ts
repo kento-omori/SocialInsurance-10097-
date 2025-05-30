@@ -33,7 +33,7 @@ export class EmployeeHomeComponent implements OnInit {
     this.employeeId = this.routeParamService.setEmployeeId(this.route);
     this.employeeProfile = await this.userService.getEmployeeProfile(this.companyId, this.employeeId);
     if (this.employeeProfile) {
-      this.employeeName = this.employeeProfile.employeeName;
+      this.employeeName = this.employeeProfile.lastName + this.employeeProfile.firstName;
       this.employeeId = this.employeeProfile.employeeId;
       this.employeeEmail = this.employeeProfile.employeeEmail || '';
       this.companyName = this.employeeProfile.companyName;

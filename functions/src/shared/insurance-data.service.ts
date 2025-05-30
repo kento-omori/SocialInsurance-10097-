@@ -1,5 +1,3 @@
-import { Injectable } from '@angular/core';
-
 // 標準報酬月額と等級のテーブル
 export interface GradeEntry {
   grade: number; // 等級
@@ -21,9 +19,6 @@ export interface PrefectureRate {
 // 40歳以上の判定に使う年齢
 export const NURSING_CARE_APPLICABLE_AGE = 40;
 
-@Injectable({
-  providedIn: 'root'
-})
 export class InsuranceData {
   // 標準報酬月額と等級の全国一律テーブル
   private static gradeTable: GradeEntry[] = [

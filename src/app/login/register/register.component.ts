@@ -50,10 +50,8 @@ export class RegisterComponent implements OnInit {
       return this.fb.group({
         companyName: ['', [Validators.required, Validators.pattern(/^(?!\s+$).+/)]],
         employeeId: ['', [Validators.required, Validators.pattern(/^(?!\s+$).+/)]],
-        displayName: ['', [
-          Validators.required,
-          Validators.pattern(/^[^\s]*[\u3000]+[^\s]*$/)
-        ]],
+        lastName: ['', [Validators.required, Validators.pattern('^[ぁ-んァ-ン一-龥々ー]+$')]],
+        firstName: ['', [Validators.required, Validators.pattern('^[ぁ-んァ-ン一-龥々ー]+$')]],
         email: ['', [Validators.required, Validators.email, Validators.pattern(/^(?!\s+$).+/)]],
         password: ['', passwordValidators],
         confirmPassword: ['', Validators.required]
@@ -99,7 +97,7 @@ export class RegisterComponent implements OnInit {
 
       // 従業員登録の場合、既存の従業員情報と一致するかチェック
       if (this.registerType === 'employee') {
-        const { employeeId, displayName } = this.registerForm.value;
+        const { employeeId, lastName, firstName } = this.registerForm.value;
         const companyId = await this.userService.getCompanyIdByName(companyName);
         if (!companyId) {
           this.error = '会社情報が見つかりません。';
@@ -107,7 +105,7 @@ export class RegisterComponent implements OnInit {
         }
 
         const employee = await this.userService.getEmployeeProfile(companyId, employeeId);
-        if (!employee || employee.employeeName !== displayName) {
+        if (!employee || employee.lastName !== lastName || employee.firstName !== firstName) {
           this.error = '会社情報に登録されていないため、アカウント作成できません。管理者へ連絡ください';
           return;
         }
@@ -117,9 +115,9 @@ export class RegisterComponent implements OnInit {
       localStorage.setItem('companyName', companyName);
       localStorage.setItem('registerType', this.registerType);
       if (this.registerType === 'employee') {
-        const { employeeId, displayName } = this.registerForm.value;
+        const { employeeId, lastName, firstName } = this.registerForm.value;
         localStorage.setItem('employeeId', employeeId);
-        localStorage.setItem('employeeName', displayName);
+        localStorage.setItem('employeeName', `${lastName} ${firstName}`);
       }
 
       await this.authService.register(email, password);

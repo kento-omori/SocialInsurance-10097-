@@ -25,19 +25,35 @@
                 </div>
               </div>
               <div *ngIf="registerType === 'employee'" class="mb-3">
-                <label for="displayName" class="form-label">従業員氏名</label>
+                <label for="lastName" class="form-label">氏</label>
                 <input
                   type="text"
                   class="form-control"
-                  id="displayName"
-                  formControlName="displayName"
-                  [ngClass]="{'is-invalid': registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched}"
+                  id="lastName"
+                  formControlName="lastName"
+                  [ngClass]="{'is-invalid': registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched}"
                 >
-                <div class="invalid-feedback" *ngIf="registerForm.get('displayName')?.errors?.['required']">
-                  氏名を入力してください
+                <div class="invalid-feedback" *ngIf="registerForm.get('lastName')?.errors?.['required']">
+                  氏を入力してください
                 </div>
-                <div class="invalid-feedback" *ngIf="registerForm.get('displayName')?.errors?.['pattern']">
-                  全角スペースのみ使用可能です
+                <div class="invalid-feedback" *ngIf="registerForm.get('lastName')?.errors?.['pattern']">
+                  全角文字（ひらがな・カタカナ・漢字）のみ使用可能です
+                </div>
+              </div>
+              <div *ngIf="registerType === 'employee'" class="mb-3">
+                <label for="firstName" class="form-label">名</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="firstName"
+                  formControlName="firstName"
+                  [ngClass]="{'is-invalid': registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched}"
+                >
+                <div class="invalid-feedback" *ngIf="registerForm.get('firstName')?.errors?.['required']">
+                  名を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="registerForm.get('firstName')?.errors?.['pattern']">
+                  全角文字（ひらがな・カタカナ・漢字）のみ使用可能です
                 </div>
               </div>
               <div class="mb-3">

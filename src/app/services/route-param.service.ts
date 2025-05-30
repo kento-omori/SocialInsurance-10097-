@@ -167,5 +167,12 @@ export class RouteParamService {
     }
   }
   
+  goToStandardBonusAmount(): void {
+    const companyId = this.getCompanyId();
+    const employeeId = this.getEmployeeId();
+    if (companyId && employeeId) {
+      this.router.navigate(['/companies', companyId, 'admin-home', employeeId, 'standard-bonus-amount']);
+    }
+  }
 
 } 

@@ -20,7 +20,7 @@ import { AllEmployeeListComponent } from './admin/all-employee-list/all-employee
 import { ViewSalaryComponent } from './admin/view-salary/view-salary.component';
 import { StandardRemunerationComponent } from './admin/standard-remuneration/standard-remuneration.component';
 import { PremiumsComponent } from './admin/premiums/premiums.component';
-
+import { StandardBonusAmountComponent } from './admin/standard-bonus-amount/standard-bonus-amount.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -72,6 +72,9 @@ export const routes: Routes = [
         // canActivate: [authGuard, adminGuard]
     },
     { path: 'companies/:companyId/admin-home/:employeeId/premiums', component: PremiumsComponent,
+        // canActivate: [authGuard, adminGuard]
+    },
+    { path: 'companies/:companyId/admin-home/:employeeId/standard-bonus-amount', component: StandardBonusAmountComponent,
         // canActivate: [authGuard, adminGuard]
     },
 

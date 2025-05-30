@@ -14,11 +14,8 @@ export class CompanyService {
 
   constructor(
     private firestore: Firestore,
-    private routeParamService: RouteParamService,
-    private route: ActivatedRoute
-  ) {
-    this.companyId = this.routeParamService.setCompanyId(this.route);
-  }
+    private routeParamService: RouteParamService
+  ) {}
 
   setCompanyId(companyId: string) {
     this.companyId = companyId;

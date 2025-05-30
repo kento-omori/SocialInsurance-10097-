@@ -12,6 +12,7 @@
           <div class="card-body">
             <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()">
               <div class="row">
+
                 <div class="col-md-4 mb-3">
                   <label class="form-label">社員番号 <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" formControlName="employeeId" 
@@ -30,108 +31,320 @@
                     この社員番号は既に使用されています
                   </div>
                 </div>
+                <div class="col-md-2">
+                  <label class="form-label">氏 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="lastName" [ngClass]="{'is-invalid': employeeForm.get('lastName')?.invalid && employeeForm.get('lastName')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('lastName')?.errors?.['required'] && employeeForm.get('lastName')?.touched">
+                    氏を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('lastName')?.errors?.['pattern'] && employeeForm.get('lastName')?.touched">
+                    日本語のみで入力してください
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">名 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="firstName" [ngClass]="{'is-invalid': employeeForm.get('firstName')?.invalid && employeeForm.get('firstName')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('firstName')?.errors?.['required'] && employeeForm.get('firstName')?.touched">
+                    名を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('firstName')?.errors?.['pattern'] && employeeForm.get('firstName')?.touched">
+                    日本語のみで入力してください
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">氏カナ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="lastNameKana" [ngClass]="{'is-invalid': employeeForm.get('lastNameKana')?.invalid && employeeForm.get('lastNameKana')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('lastNameKana')?.errors?.['required'] && employeeForm.get('lastNameKana')?.touched">
+                    氏カナを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('lastNameKana')?.errors?.['pattern'] && employeeForm.get('lastNameKana')?.touched">
+                    カタカナのみで入力してください
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">名カナ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="firstNameKana" [ngClass]="{'is-invalid': employeeForm.get('firstNameKana')?.invalid && employeeForm.get('firstNameKana')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('firstNameKana')?.errors?.['required'] && employeeForm.get('firstNameKana')?.touched">
+                    名カナを入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('firstNameKana')?.errors?.['pattern'] && employeeForm.get('firstNameKana')?.touched">
+                    カタカナのみで入力してください
+                  </div>
+                </div>
+
+                <div class="force-break"></div>
+
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">生年月日 <span class="text-danger">*</span></label>
+                  <div class="d-flex gap-2">
+                    <select class="form-select" formControlName="birthEra" [ngClass]="{'is-invalid': employeeForm.get('birthEra')?.invalid && employeeForm.get('birthEra')?.touched}">
+                      <option value="">選択</option>
+                      <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                    </select>
+                    <input type="text" class="form-control" formControlName="birthYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('birthYear')?.invalid && employeeForm.get('birthYear')?.touched}">
+                    <span class="input-group-text">年</span>
+                    <input type="text" class="form-control" formControlName="birthMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('birthMonth')?.invalid && employeeForm.get('birthMonth')?.touched}">
+                    <span class="input-group-text">月</span>
+                    <input type="text" class="form-control" formControlName="birthDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('birthDay')?.invalid && employeeForm.get('birthDay')?.touched}">
+                    <span class="input-group-text">日</span>
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthEra')?.errors?.['required'] && employeeForm.get('birthEra')?.touched">
+                    和暦を選択してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthYear')?.errors?.['required'] && employeeForm.get('birthYear')?.touched">
+                    年を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthYear')?.errors?.['pattern'] && employeeForm.get('birthYear')?.touched">
+                    年は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthYear')?.errors?.['invalidYear'] && employeeForm.get('birthYear')?.touched">
+                    正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthMonth')?.errors?.['required'] && employeeForm.get('birthMonth')?.touched">
+                    月を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthMonth')?.errors?.['pattern'] && employeeForm.get('birthMonth')?.touched">
+                    月は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthMonth')?.errors?.['min'] || employeeForm.get('birthMonth')?.errors?.['max']">
+                    月は1-12の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthDay')?.errors?.['required'] && employeeForm.get('birthDay')?.touched">
+                    日を入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthDay')?.errors?.['pattern'] && employeeForm.get('birthDay')?.touched">
+                    日は1-2桁の数字で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthDay')?.errors?.['min'] || employeeForm.get('birthDay')?.errors?.['max']">
+                    日は1-31の間で入力してください
+                  </div>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('birthDay')?.errors?.['invalidDay'] && employeeForm.get('birthDay')?.touched">
+                    正しい日付を入力してください
+                  </div>
+                </div>
+
+                <div class="force-break"></div>
 
                 <div class="col-md-4 mb-3">
-                  <label class="form-label">従業員氏名（日本語で入力） <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" formControlName="employeeName"
-                    [ngClass]="{'is-invalid': employeeForm.get('employeeName')?.invalid && employeeForm.get('employeeName')?.touched}">
-                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['required'] && employeeForm.get('employeeName')?.touched">
-                    従業員氏名を入力してください
-                  </div>
-                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['maxlength'] && employeeForm.get('employeeName')?.touched">
-                    30文字以内で入力してください
-                  </div>
-                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeName')?.errors?.['pattern'] && employeeForm.get('employeeName')?.touched">
-                    全角文字と全角スペースのみ使用可能です
+                  <label class="form-label">性別 <span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="gender" [ngClass]="{'is-invalid': employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched}">
+                      <option value="">選択してください</option>
+                      <option value="男性">男性</option>
+                      <option value="女性">女性</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="employeeForm.get('gender')?.errors?.['required'] && employeeForm.get('gender')?.touched">
+                      性別を選択してください
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label d-flex align-items-center">
+                    社員属性 <span class="text-danger">*</span>
+                    <span
+                      class="ms-2"
+                      tabindex="0"
+                      data-bs-toggle="popover"
+                      data-bs-placement="right"
+                      data-bs-html="true"
+                      data-bs-trigger="focus"
+                      data-bs-custom-class="wide-popover"
+                      data-bs-container="body"
+                      data-bs-content="
+                        <strong>【社員属性の解説】</strong><br>
+                        <ul style='padding-left:1.2em; margin-bottom:0;'>
+                          <li><b>正社員</b>：通常のフルタイム従業員</li>
+                          <li><b>常勤役員</b>：会社の役員で常勤。通常の正社員と同じ扱いになることが多い</li>
+                          <li><b>非常勤役員</b>：会社の役員で非常勤。通常、社会保険の加入対象外であることが多い</li>
+                          <li><b>短時間就労者</b>：週の所定労働時間が通常の労働者の4分の3以上、かつ月の所定労働日数が通常の労働者の4分の3以上である者※</li>
+                          <li><b>短時間労働者（社会保険加入）</b>：短時間就労者以外で、以下の①～⑤を満たす者。※<br>
+                            <ol style='padding-left:1.2em; margin-bottom:0;'>
+                              <li>週の所定労働時間が20時間以上あること</li>
+                              <li>雇用期間が継続して2カ月を超えて見込まれること</li>
+                              <li>賃金の月額が88,000円以上であること</li>
+                              <li>学生でないこと</li>
+                              <li>特定適用事業所または国・地方公共団体に属する事業所に勤めていること</li>
+                            </ol>
+                          </li>
+                          <li><b>短時間労働者（社会保険非加入）</b>：上記①～⑤の要件に該当しない者※</li>
+                          <li><b>派遣・フリーランス</b>：派遣社員や業務委託（派遣元やフリーランス個人で社会保険を負担）</li>
+                          <li><b>その他</b>：上記以外</li>
+                          <li>※ 主に、契約社員や嘱託社員、パート、アルバイトなど</li>
+                        </ul>
+                      "
+                      style="cursor: pointer;"
+                    >
+                      <i class="fa fa-question-circle text-secondary"></i>
+                    </span>
+                  </label>
+                  <select class="form-select" formControlName="employeeAttribute"
+                    [ngClass]="{'is-invalid': employeeForm.get('employeeAttribute')?.invalid && employeeForm.get('employeeAttribute')?.touched}">
+                    <option value="">選択してください</option>
+                    <option value="正社員">正社員</option>
+                    <option value="常勤役員">常勤役員</option>
+                    <option value="非常勤役員">非常勤役員</option>
+                    <option value="短時間労働者">短時間就労者</option>
+                    <option value="短時間労働者（社会保険加入）">短時間労働者（社会保険加入）</option>
+                    <option value="短時間労働者（社会保険非加入）">短時間労働者（社会保険非加入）</option>
+                    <option value="派遣社員・フリーランス">派遣・フリーランス</option>
+                    <option value="その他">その他</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('employeeAttribute')?.errors?.['required'] && employeeForm.get('employeeAttribute')?.touched">
+                    社員属性を選択してください
                   </div>
                 </div>
 
+                <div class="col-md-4 mb-3 row">
+                  <label class="form-label">社会保険資格</label>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="healthInsurance" 
+                        (change)="onInsuranceChange($event, 'health')" 
+                        [checked]="isInsuranceChecked('health')">
+                      <label class="form-check-label" for="healthInsurance">健康保険</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="pensionInsurance" 
+                        (change)="onInsuranceChange($event, 'pension')" 
+                        [checked]="isInsuranceChecked('pension')">
+                      <label class="form-check-label" for="pensionInsurance">厚生年金</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="force-break"></div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">所属事業所<span class="text-danger">*</span></label>
+                  <select class="form-select" formControlName="office" [ngClass]="{'is-invalid': employeeForm.get('office')?.invalid && employeeForm.get('office')?.touched}">
+                    <option value="">選択してください</option>
+                    <option *ngFor="let o of officeList" [value]="o.id">{{ o.officeName }}</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('office')?.errors?.['required'] && employeeForm.get('office')?.touched">
+                    所属事業所を選択してください
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">部署<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="department" [ngClass]="{'is-invalid': employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('department')?.errors?.['required'] && employeeForm.get('department')?.touched">
+                    部署を入力してください
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label class="form-label">役職<span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="rank" [ngClass]="{'is-invalid': employeeForm.get('rank')?.invalid && employeeForm.get('rank')?.touched}">
+                  <div class="invalid-feedback" *ngIf="employeeForm.get('rank')?.errors?.['required'] && employeeForm.get('rank')?.touched">
+                    役職を入力してください
+                  </div>
+                </div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label d-flex align-items-center">
-                  社員属性 <span class="text-danger">*</span>
-                  <span
-                    class="ms-2"
-                    tabindex="0"
-                    data-bs-toggle="popover"
-                    data-bs-placement="right"
-                    data-bs-html="true"
-                    data-bs-trigger="focus"
-                    data-bs-custom-class="wide-popover"
-                    data-bs-container="body"
-                    data-bs-content="
-                      <strong>【社員属性の解説】</strong><br>
-                      <ul style='padding-left:1.2em; margin-bottom:0;'>
-                        <li><b>正社員</b>：通常のフルタイム従業員</li>
-                        <li><b>常勤役員</b>：会社の役員で常勤。通常の正社員と同じ扱いになることが多い</li>
-                        <li><b>非常勤役員</b>：会社の役員で非常勤。通常、社会保険の加入対象外であることが多い</li>
-                        <li><b>短時間就労者</b>：週の所定労働時間が通常の労働者の4分の3以上、かつ月の所定労働日数が通常の労働者の4分の3以上である者※</li>
-                        <li><b>短時間労働者（社会保険加入）</b>：短時間就労者以外で、以下の①～⑤を満たす者。※<br>
-                          <ol style='padding-left:1.2em; margin-bottom:0;'>
-                            <li>週の所定労働時間が20時間以上あること</li>
-                            <li>雇用期間が継続して2カ月を超えて見込まれること</li>
-                            <li>賃金の月額が88,000円以上であること</li>
-                            <li>学生でないこと</li>
-                            <li>特定適用事業所または国・地方公共団体に属する事業所に勤めていること</li>
-                          </ol>
-                        </li>
-                        <li><b>短時間労働者（社会保険非加入）</b>：上記①～⑤の要件に該当しない者※</li>
-                        <li><b>派遣・フリーランス</b>：派遣社員や業務委託（派遣元やフリーランス個人で社会保険を負担）</li>
-                        <li><b>その他</b>：上記以外</li>
-                        <li>※ 主に、契約社員や嘱託社員、パート、アルバイトなど</li>
-                      </ul>
-                    "
-                    style="cursor: pointer;"
-                  >
-                    <i class="fa fa-question-circle text-secondary"></i>
-                  </span>
-                </label>
-                <select class="form-select" formControlName="employeeAttribute"
-                  [ngClass]="{'is-invalid': employeeForm.get('employeeAttribute')?.invalid && employeeForm.get('employeeAttribute')?.touched}">
-                  <option value="">選択してください</option>
-                  <option value="正社員">正社員</option>
-                  <option value="常勤役員">常勤役員</option>
-                  <option value="非常勤役員">非常勤役員</option>
-                  <option value="短時間労働者">短時間就労者</option>
-                  <option value="短時間労働者（社会保険加入）">短時間労働者（社会保険加入）</option>
-                  <option value="短時間労働者（社会保険非加入）">短時間労働者（社会保険非加入）</option>
-                  <option value="派遣社員・フリーランス">派遣・フリーランス</option>
-                  <option value="その他">その他</option>
-                </select>
-                <div class="invalid-feedback" *ngIf="employeeForm.get('employeeAttribute')?.errors?.['required'] && employeeForm.get('employeeAttribute')?.touched">
-                  社員属性を選択してください
+              <div class="force-break"></div>
+
+              <div class="col-md-12 mb-3">
+                <label class="form-label">入社年月日 <span class="text-danger">*</span></label>
+                <div class="d-flex gap-2">
+                  <select class="form-select" formControlName="hireEra" [ngClass]="{'is-invalid': employeeForm.get('hireEra')?.invalid && employeeForm.get('hireEra')?.touched}">
+                    <option value="">選択</option>
+                    <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                  </select>
+                  <input type="text" class="form-control" formControlName="hireYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('hireYear')?.invalid && employeeForm.get('hireYear')?.touched}">
+                  <span class="input-group-text">年</span>
+                  <input type="text" class="form-control" formControlName="hireMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('hireMonth')?.invalid && employeeForm.get('hireMonth')?.touched}">
+                  <span class="input-group-text">月</span>
+                  <input type="text" class="form-control" formControlName="hireDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('hireDay')?.invalid && employeeForm.get('hireDay')?.touched}">
+                  <span class="input-group-text">日</span>
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireEra')?.errors?.['required'] && employeeForm.get('hireEra')?.touched">
+                  和暦を選択してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireYear')?.errors?.['required'] && employeeForm.get('hireYear')?.touched">
+                  年を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireYear')?.errors?.['pattern'] && employeeForm.get('hireYear')?.touched">
+                  年は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireYear')?.errors?.['invalidYear'] && employeeForm.get('hireYear')?.touched">
+                  正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireYear')?.errors?.['invalidDateOrder'] && employeeForm.get('hireYear')?.touched">
+                  入社日は退社日より前の日付を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireMonth')?.errors?.['required'] && employeeForm.get('hireMonth')?.touched">
+                  月を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireMonth')?.errors?.['pattern'] && employeeForm.get('hireMonth')?.touched">
+                  月は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireMonth')?.errors?.['min'] || employeeForm.get('hireMonth')?.errors?.['max']">
+                  月は1-12の間で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireDay')?.errors?.['required'] && employeeForm.get('hireDay')?.touched">
+                  日を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireDay')?.errors?.['pattern'] && employeeForm.get('hireDay')?.touched">
+                  日は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireDay')?.errors?.['min'] || employeeForm.get('hireDay')?.errors?.['max']">
+                  日は1-31の間で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('hireDay')?.errors?.['invalidDay'] && employeeForm.get('hireDay')?.touched">
+                  正しい日付を入力してください
                 </div>
               </div>
 
-              <div class="mb-3 row">
-                <label class="form-label">社会保険資格</label>
-                <div class="col-md-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="healthInsurance" 
-                      (change)="onInsuranceChange($event, 'health')" 
-                      [checked]="isInsuranceChecked('health')">
-                    <label class="form-check-label" for="healthInsurance">健康保険</label>
-                  </div>
+              <div class="force-break"></div>
+
+              <div class="col-md-12 mb-3">
+                <label class="form-label">退社年月日</label>
+                <div class="d-flex gap-2">
+                  <select class="form-select" formControlName="retireEra" [ngClass]="{'is-invalid': employeeForm.get('retireEra')?.invalid && employeeForm.get('retireEra')?.touched}">
+                    <option value="">選択</option>
+                    <option *ngFor="let era of eraList" [value]="era.value">{{ era.value }}</option>
+                  </select>
+                  <input type="text" class="form-control" formControlName="retireYear" placeholder="年" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('retireYear')?.invalid && employeeForm.get('retireYear')?.touched}">
+                  <span class="input-group-text">年</span>
+                  <input type="text" class="form-control" formControlName="retireMonth" placeholder="月" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('retireMonth')?.invalid && employeeForm.get('retireMonth')?.touched}">
+                  <span class="input-group-text">月</span>
+                  <input type="text" class="form-control" formControlName="retireDay" placeholder="日" maxlength="2" [ngClass]="{'is-invalid': employeeForm.get('retireDay')?.invalid && employeeForm.get('retireDay')?.touched}">
+                  <span class="input-group-text">日</span>
                 </div>
-                <div class="col-md-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="pensionInsurance" 
-                      (change)="onInsuranceChange($event, 'pension')" 
-                      [checked]="isInsuranceChecked('pension')">
-                    <label class="form-check-label" for="pensionInsurance">厚生年金</label>
-                  </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireYear')?.errors?.['pattern'] && employeeForm.get('retireYear')?.touched">
+                  年は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireYear')?.errors?.['invalidYear'] && employeeForm.get('retireYear')?.touched">
+                  正しい年を入力してください（昭和1-64年、平成1-31年、令和1-7年）
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireYear')?.errors?.['invalidDateOrder'] && employeeForm.get('retireYear')?.touched">
+                  退社日は入社日より後の日付を入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireMonth')?.errors?.['pattern'] && employeeForm.get('retireMonth')?.touched">
+                  月は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireMonth')?.errors?.['min'] || employeeForm.get('retireMonth')?.errors?.['max']">
+                  月は1-12の間で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireDay')?.errors?.['pattern'] && employeeForm.get('retireDay')?.touched">
+                  日は1-2桁の数字で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireDay')?.errors?.['min'] || employeeForm.get('retireDay')?.errors?.['max']">
+                  日は1-31の間で入力してください
+                </div>
+                <div class="invalid-feedback" *ngIf="employeeForm.get('retireDay')?.errors?.['invalidDay'] && employeeForm.get('retireDay')?.touched">
+                  正しい日付を入力してください
                 </div>
               </div>
 
-              <div class="d-grid gap-2">
+              <div class="d-flex justify-content-end gap-2 mb-3 col-md-12">
                 <button type="submit" class="btn btn-primary" [disabled]="!employeeForm.valid">
                   {{isEditMode ? '更新' : '登録'}}
                 </button>
                 <button *ngIf="isEditMode" type="button" class="btn btn-secondary" (click)="cancelEdit()">
                   キャンセル
                 </button>
-                <button *ngIf="isEditMode" type="button" class="btn btn-danger" (click)="retireEmployee()">
+                <button *ngIf="isEditMode" type="button" class="btn btn-danger" (click)="retireEmployee()" [disabled]="!employeeForm.get('retireYear')?.value || !employeeForm.get('retireMonth')?.value || !employeeForm.get('retireDay')?.value">
                   退職処理
                 </button>
               </div>
@@ -177,19 +390,49 @@
                   <thead>
                     <tr>
                       <th>社員番号</th>
-                      <th>従業員氏名</th>
+                      <th>氏</th>
+                      <th>名</th>
+                      <th>氏カナ</th>
+                      <th>名カナ</th>
+                      <th>和暦</th>
+                      <th>年</th>
+                      <th>月</th>
+                      <th>日</th>
+                      <th>性別</th>
                       <th>社員属性</th>
                       <th>健康保険</th>
                       <th>厚生年金</th>
+                      <th>所属事業所</th>
+                      <th>部署</th>
+                      <th>役職</th>
+                      <th>入社和暦</th>
+                      <th>入社年</th>
+                      <th>入社月</th>
+                      <th>入社日</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of csvPreview">
                       <td>{{row.employeeId}}</td>
-                      <td>{{row.employeeName}}</td>
+                      <td>{{row.lastName}}</td>
+                      <td>{{row.firstName}}</td>
+                      <td>{{row.lastNameKana}}</td>
+                      <td>{{row.firstNameKana}}</td>
+                      <td>{{row.birthEra}}</td>
+                      <td>{{row.birthYear}}</td>
+                      <td>{{row.birthMonth}}</td>
+                      <td>{{row.birthDay}}</td>
+                      <td>{{row.gender}}</td>
                       <td>{{row.employeeAttribute}}</td>
                       <td>{{row.healthInsurance ? '○' : '×'}}</td>
                       <td>{{row.pensionInsurance ? '○' : '×'}}</td>
+                      <td>{{row.office}}</td>
+                      <td>{{row.department}}</td>
+                      <td>{{row.rank}}</td>
+                      <td>{{row.hireEra}}</td>
+                      <td>{{row.hireYear}}</td>
+                      <td>{{row.hireMonth}}</td>
+                      <td>{{row.hireDay}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -199,7 +442,7 @@
         </div>
       </div>
       <!-- 右側　従業員リスト表示カード -->
-      <div class="col-md-6 mb-4">
+      <div class="col-md-12 mb-4">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center" 
                [ngClass]="{'bg-warning-subtle text-dark': showRetiredEmployees}">
@@ -213,19 +456,28 @@
               <table class="table table-striped table-hover">
                 <thead>
                   <tr>
-                    <th scope="col" class="text-center" style="width: 10%">No</th>
-                    <th scope="col" style="width: 20%">社員番号</th>
-                    <th scope="col" style="width: 25%">氏名</th>
-                    <th scope="col" style="width: 20%">属性</th>
-                    <th scope="col" style="width: 15%">資格</th>
-                    <th scope="col" style="width: 10%"></th>
+                    <th scope="col" class="text-center">No</th>
+                    <th scope="col" >社員番号</th>
+                    <th scope="col" >氏名</th>
+                    <th scope="col" >氏名カナ</th>
+                    <th scope="col" >性別</th>
+                    <th scope="col" >属性</th>
+                    <th scope="col" >資格</th>
+                    <th scope="col" >所属事業所</th>
+                    <th scope="col" >部署</th>
+                    <th scope="col" >役職</th>
+                    <th scope="col" >入社年月日</th>
+                    <th scope="col" >退社年月日</th>
+                    <th scope="col" ></th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let employee of (showRetiredEmployees ? retiredEmployees : employees); let i = index">
                     <td class="text-center">{{i + 1}}</td>
                     <td>{{employee.employeeId}}</td>
-                    <td>{{employee.employeeName}}</td>
+                    <td>{{employee.lastName}}　{{employee.firstName}}</td>
+                    <td>{{employee.lastNameKana}}　{{employee.firstNameKana}}</td>
+                    <td>{{employee.gender}}</td>
                     <td>{{employee.employeeAttribute}}</td>
                     <td>
                       <span *ngFor="let status of employee.insuredStatus" class="badge bg-primary me-1">
@@ -233,6 +485,11 @@
                           status === 'pension' ? '厚生' : ''}}
                       </span>
                     </td>
+                    <td>{{employee.officeName}}</td>
+                    <td>{{employee.department}}</td>
+                    <td>{{employee.rank}}</td>
+                    <td>{{employee.hireEra}}{{employee.hireYear}}年{{employee.hireMonth}}月{{employee.hireDay}}日</td>
+                    <td>{{employee.retireEra ? employee.retireEra + employee.retireYear + '年' + employee.retireMonth + '月' + employee.retireDay + '日' : ''}}</td>
                     <td>
                       <div class="btn-group btn-group-sm" *ngIf="!showRetiredEmployees">
                         <button type="button" class="btn btn-outline-primary" (click)="editEmployee(employee)">

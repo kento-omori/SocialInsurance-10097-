@@ -42,4 +42,8 @@ export class AllEmployeeListComponent implements OnInit {
   goToPremiums() {
     this.routeParamService.goToPremiums();
   }
+
+  goToStandardBonusAmount() {
+    this.routeParamService.goToStandardBonusAmount();
+  }
 }

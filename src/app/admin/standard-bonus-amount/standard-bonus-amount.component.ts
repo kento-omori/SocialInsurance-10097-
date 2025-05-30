@@ -10,32 +10,33 @@ import { UserService } from '../../services/user.service';
 import { Observable, of } from 'rxjs';
 import { debounceTime, switchMap, first } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
-import { InsuranceData, GradeEntry} from '../../services/insurance-data.service';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { InsuranceData, GradeEntry} from '../../services/insurance-data.service';
 
 @Component({
-  selector: 'app-standard-remuneration',
+  selector: 'app-standard-bonus-amount',
   standalone: true,
-  imports: [CommonModule, JpyPipe, ReactiveFormsModule, FormsModule],
-  templateUrl: './standard-remuneration.component.html',
-  styleUrl: './standard-remuneration.component.css'
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, JpyPipe],
+  templateUrl: './standard-bonus-amount.component.html',
+  styleUrl: './standard-bonus-amount.component.css'
 })
-export class StandardRemunerationComponent implements OnInit {
+
+export class StandardBonusAmountComponent implements OnInit {
   private companyId: string | null = null;
   private employeeId: string | null = null;
-  standardRemunerationList: StandardRemuneration[] | null = null;
+  standardBonusAmountList: StandardRemuneration[] | null = null;
   isInput: boolean = false;
   isEdit: boolean = false;
   editingId: string | null = null;
-  standardRemunerationForm: FormGroup;
-  gradeTable: GradeEntry[] = [];
+  standardBonusAmountForm: FormGroup;
   csvFile: File | null = null;
   csvError: string = '';
   csvPreview: any[] = [];
   uploadProgress: number = 0;
   uploadStatus: string = '';
+  gradeTable: GradeEntry[] = [];
   selectedPaymentDate: string = '';
   isLoading: boolean = false;
 
@@ -49,10 +50,10 @@ export class StandardRemunerationComponent implements OnInit {
     private userService: UserService,
     private fb: FormBuilder,
     private toast: ToastrService,
-    private insuranceData: InsuranceData,
-    private http: HttpClient
+    private http: HttpClient,
+    private insuranceData: InsuranceData
   ) {
-    this.standardRemunerationForm = this.fb.group({
+    this.standardBonusAmountForm = this.fb.group({
       employeeId: ['', {
         validators: [
           Validators.required,
@@ -65,22 +66,9 @@ export class StandardRemunerationComponent implements OnInit {
       employeeName: ['', Validators.required],
       employeeAttribute: ['', Validators.required],
       qualification: ['', Validators.required],
-      salaryType: [{ value: '月額', disabled: true }],
-      standardRemuneration: ['', [Validators.required, Validators.min(0)]],
-      standardRemunerationGrade: ['', [Validators.required, Validators.min(1)]],
-      standardRemunerationDate: ['', Validators.required]
-    });
-
-    // 標準報酬月額の変更を監視
-    this.standardRemunerationForm.get('standardRemuneration')?.valueChanges.subscribe(value => {
-      if (value) {
-        const selectedGrade = this.gradeTable.find(grade => grade.standardMonthlyRemuneration === Number(value));
-        if (selectedGrade) {
-          this.standardRemunerationForm.patchValue({
-            standardRemunerationGrade: selectedGrade.grade
-          }, { emitEvent: false });
-        }
-      }
+      salaryType: [{ value: '賞与', disabled: true }],
+      standardBonusAmount: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(0)]],
+      standardBonusAmountDate: ['', Validators.required]
     });
   }
 
@@ -88,22 +76,22 @@ export class StandardRemunerationComponent implements OnInit {
     this.companyId = this.routeParamService.setCompanyId(this.route);
     this.employeeId = this.routeParamService.setEmployeeId(this.route);
 
+    this.standardRemunerationService.getAllStandardRemunerationInfo('賞与').subscribe(
+      (standardBonusAmountList: StandardRemuneration[]) => {
+        this.standardBonusAmountList = standardBonusAmountList;
+      }
+    );
+    
     // 等級テーブルの取得
     this.gradeTable = InsuranceData.getGradeTable();
 
-    this.standardRemunerationService.getAllStandardRemunerationInfo('月額').subscribe(
-      (standardRemunerationList: StandardRemuneration[]) => {
-        this.standardRemunerationList = standardRemunerationList;
-      }
-    );
-
     // 社員番号の変更を監視
-    this.standardRemunerationForm.get('employeeId')?.valueChanges.subscribe(async (employeeId) => {
+    this.standardBonusAmountForm.get('employeeId')?.valueChanges.subscribe(async (employeeId) => {
       if (employeeId && this.companyId) {
         try {
           const profile = await this.userService.getEmployeeProfile(this.companyId, employeeId);
           if (profile && profile.enrolmentData) {
-            this.standardRemunerationForm.patchValue({
+            this.standardBonusAmountForm.patchValue({
               employeeName: profile.lastName + '　' + profile.firstName,
               employeeAttribute: profile.employeeAttribute,
               qualification: this.formatQualification(profile.insuredStatus)
@@ -122,19 +110,19 @@ export class StandardRemunerationComponent implements OnInit {
     });
 
     // 社員番号の存在チェック
-    this.standardRemunerationForm.get('employeeId')?.setAsyncValidators(this.employeeIdExistsValidator(this.userService, this.companyId));
-    this.standardRemunerationForm.get('employeeId')?.updateValueAndValidity();
+    this.standardBonusAmountForm.get('employeeId')?.setAsyncValidators(this.employeeIdExistsValidator(this.userService, this.companyId));
+    this.standardBonusAmountForm.get('employeeId')?.updateValueAndValidity();
   }
 
   loadData() {
     this.isLoading = true;
-    this.standardRemunerationService.getLatestStandardRemunerationByDate('月額', this.selectedPaymentDate).subscribe({
-      next: (standardRemunerationList: StandardRemuneration[]) => {
-        this.standardRemunerationList = standardRemunerationList;
+    this.standardRemunerationService.getLatestStandardRemunerationByDate('賞与', this.selectedPaymentDate).subscribe({
+      next: (standardBonusAmountList: StandardRemuneration[]) => {
+        this.standardBonusAmountList = standardBonusAmountList;
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('標準報酬月額の取得に失敗しました:', error);
+        console.error('標準賞与額の取得に失敗しました:', error);
         this.isLoading = false;
       }
     });
@@ -142,7 +130,7 @@ export class StandardRemunerationComponent implements OnInit {
 
   // 従業員情報をクリアするメソッド
   private clearEmployeeInfo(): void {
-    this.standardRemunerationForm.patchValue({
+    this.standardBonusAmountForm.patchValue({
       employeeName: '',
       employeeAttribute: '',
       qualification: ''
@@ -196,73 +184,71 @@ export class StandardRemunerationComponent implements OnInit {
     this.routeParamService.goToAdminHome();
   }
 
-  goToStandardRemunerationInput() {
+  goToStandardBonusAmountInput() {
     this.isInput = !this.isInput;
     if (!this.isInput) {
       this.isEdit = false;
       this.editingId = null;
-      this.standardRemunerationForm.reset();
+      this.standardBonusAmountForm.reset();
     }
   }
 
-  editStandardRemuneration(standardRemuneration: StandardRemuneration) {
+  editstandardBonusAmountList(standardBonusAmountList: StandardRemuneration) {
     this.isInput = true;
     this.isEdit = true;
-    this.editingId = standardRemuneration.id || null;
-    this.standardRemunerationForm.patchValue({
-      employeeId: standardRemuneration.employeeId,
-      employeeName: standardRemuneration.employeeName,
-      employeeAttribute: standardRemuneration.employeeAttribute,
-      qualification: standardRemuneration.qualification,
-      standardRemuneration: Number(standardRemuneration.standardRemuneration),
-      standardRemunerationGrade: Number(standardRemuneration.standardRemunerationGrade),
-      standardRemunerationDate: standardRemuneration.standardRemunerationDate
+    this.editingId = standardBonusAmountList.id || null;
+    this.standardBonusAmountForm.patchValue({
+      employeeId: standardBonusAmountList.employeeId,
+      employeeName: standardBonusAmountList.employeeName,
+      employeeAttribute: standardBonusAmountList.employeeAttribute,
+      qualification: standardBonusAmountList.qualification,
+      standardRemuneration: Number(standardBonusAmountList.standardRemuneration),
+      standardRemunerationDate: standardBonusAmountList.standardRemunerationDate
     });
   }
 
-  async deleteStandardRemuneration(standardRemuneration: StandardRemuneration) {
-    if (confirm('この標準報酬月額を削除してもよろしいですか？')) {
+  async deletestandardBonusAmountList(standardBonusAmountList: StandardRemuneration) {
+    if (confirm('この標準賞与額を削除してもよろしいですか？')) {
       try {
-        await this.standardRemunerationService.deleteStandardRemuneration(standardRemuneration.employeeId, standardRemuneration.id!);
-        this.toast.success('標準報酬月額を削除しました');
-        this.loadStandardRemunerationList();
+        await this.standardRemunerationService.deleteStandardRemuneration(standardBonusAmountList.employeeId, standardBonusAmountList.id!);
+        this.toast.success('標準賞与額を削除しました');
+        this.loadStandardBonusAmountList();
       } catch (error) {
-        console.error('標準報酬月額の削除に失敗しました:', error);
-        this.toast.error('標準報酬月額の削除に失敗しました');
+        console.error('標準賞与額の削除に失敗しました:', error);
+        this.toast.error('標準賞与額の削除に失敗しました');
       }
     }
   }
 
-  private loadStandardRemunerationList() {
-    this.standardRemunerationService.getAllStandardRemunerationInfo('月額').subscribe(
-      (standardRemunerationList: StandardRemuneration[]) => {
-        this.standardRemunerationList = standardRemunerationList;
+  private loadStandardBonusAmountList() {
+    this.standardRemunerationService.getAllStandardRemunerationInfo('賞与').subscribe(
+      (standardBonusAmountList: StandardRemuneration[]) => {
+        this.standardBonusAmountList = standardBonusAmountList;
       }
     );
   }
 
   async onSubmit() {
-    if (this.standardRemunerationForm.valid && this.companyId) {
-      const formData = this.standardRemunerationForm.getRawValue();
-      const standardRemuneration: Partial<StandardRemuneration> = {
+    if (this.standardBonusAmountForm.valid && this.companyId) {
+      const formData = this.standardBonusAmountForm.getRawValue();
+      const standardBonusAmount: Partial<StandardRemuneration> = {
         companyId: this.companyId,
         ...formData,
-        standardRemuneration: Number(formData.standardRemuneration),
-        standardRemunerationGrade: Number(formData.standardRemunerationGrade),
+        standardBonusAmount: Number(formData.standardBonusAmount),
         createdAt: new Date()
       };
 
       try {
         await this.standardRemunerationService.addStandardRemuneration(
           formData.employeeId,
-          standardRemuneration
+          standardBonusAmount
         );
-        this.toast.success('標準報酬月額の登録に成功しました');
-        this.standardRemunerationForm.reset();
+        this.toast.success('標準賞与額の登録に成功しました');
+        this.standardBonusAmountForm.reset();
         this.isInput = false;
       } catch (error) {
-        console.error('標準報酬月額の登録に失敗しました:', error);
-        this.toast.error('標準報酬月額の登録に失敗しました');
+        console.error('標準賞与額の登録に失敗しました:', error);
+        this.toast.error('標準賞与額の登録に失敗しました');
       }
     }
   }
@@ -322,8 +308,8 @@ export class StandardRemunerationComponent implements OnInit {
           if (columns.length >= 3) {
             const employeeId = columns[0].trim();
             const salaryType = columns[1].trim();
-            const standardRemuneration = parseInt(columns[2].trim());
-            const standardRemunerationDate = columns[3].trim();
+            const standardBonusAmount = parseInt(columns[2].trim());
+            const standardBonusAmountDate = columns[3].trim();
             const employeeProfile = employeeProfiles[employeeId];
 
             // 従業員情報が存在しない場合はスキップ
@@ -335,24 +321,23 @@ export class StandardRemunerationComponent implements OnInit {
             let selectedGrade = null;
             if (salaryType === '月額') {
               selectedGrade = this.gradeTable.find(grade => 
-                grade.standardMonthlyRemuneration === standardRemuneration
+                grade.standardMonthlyRemuneration === standardBonusAmount
               );
 
               if (!selectedGrade) {
                 continue;
               }
-            } else if (salaryType === '賞与') {
-              // 賞与の場合、1,000円未満が切り捨てられた数字かチェック
-              if (standardRemuneration % 1000 !== 0) {
-                continue;
-              }
             }
 
-            // 同じ社員番号と報酬種類の組み合わせが既に存在するかチェック
+            // 賞与の場合、1,000円未満が切り捨てられた数字かチェック
+            if (standardBonusAmount % 1000 !== 0) {
+              continue;
+            }
+
+            // 同じ社員番号と適用年月の組み合わせが既に存在するかチェック
             const existingIndex = this.csvPreview.findIndex(
               row => row.employeeId === employeeId && 
-                    row.salaryType === salaryType && 
-                    row.standardRemunerationDate === standardRemunerationDate
+                    row.standardBonusAmountDate === standardBonusAmountDate
             );
 
             const previewRow = {
@@ -361,9 +346,9 @@ export class StandardRemunerationComponent implements OnInit {
               employeeAttribute: employeeProfile.employeeAttribute || '不明',
               qualification: this.formatQualification(employeeProfile.insuredStatus || []) || '不明',
               salaryType: salaryType || '不明',
-              standardRemuneration: standardRemuneration || 0,
-              standardRemunerationGrade: selectedGrade?.grade || '',
-              standardRemunerationDate: standardRemunerationDate || ''
+              standardBonusAmount: standardBonusAmount || 0,
+              standardBonusAmountGrade: selectedGrade?.grade || '',
+              standardBonusAmountDate: standardBonusAmountDate || ''
             };
 
             if (existingIndex !== -1) {
@@ -408,28 +393,28 @@ export class StandardRemunerationComponent implements OnInit {
             } else if (event.type === HttpEventType.Response) {
               const response = event.body as { success: boolean; message: string; count: number; details?: any };
               if (response.success) {
-                const count = typeof response.count === 'object' ? JSON.stringify(response.count) : response.count;
-                this.uploadStatus = `CSVファイルのアップロードと保存が完了しました！（${count}件のデータを保存）`;
+                this.uploadStatus = `CSVファイルのアップロードと保存が完了しました！（${response.count.toString()}件のデータを保存）`;
                 this.csvFile = null;
                 this.csvPreview = [];
                 this.uploadProgress = 0;
-                this.loadStandardRemunerationList();
-                this.toast.success('標準報酬月額の登録に成功しました');
+                this.loadStandardBonusAmountList();
+                this.toast.success('標準賞与額の登録に成功しました');
               } else {
                 this.uploadStatus = `アップロードに失敗しました: ${response.message}`;
                 console.error('エラーの詳細:', response.details);
-                this.toast.error('標準報酬月額の登録に失敗しました'); 
+                this.toast.error(response.message || '標準賞与額の登録に失敗しました'); 
                 this.uploadProgress = 0;
               }
             }
           },
           error: (error) => {
             console.error('CSVファイルのアップロードに失敗しました:', error);
-            this.toast.error('標準報酬月額の登録に失敗しました');
             if (error.error?.message) {
               this.uploadStatus = `アップロードに失敗しました: ${error.error.message}`;
+              this.toast.error(error.error.message);
             } else {
               this.uploadStatus = `アップロードに失敗しました: ${error.message}`;
+              this.toast.error(error.message);
             }
             console.error('エラーの詳細:', {
               status: error.status,
@@ -437,7 +422,6 @@ export class StandardRemunerationComponent implements OnInit {
               error: error.error,
               message: error.message
             });
-            this.toast.error(error.error,error.message);
             this.uploadProgress = 0;
             this.csvPreview = [];
           }
@@ -446,7 +430,7 @@ export class StandardRemunerationComponent implements OnInit {
       reader.readAsText(this.csvFile, 'UTF-8');
     } catch (error) {
       console.error('CSVファイルのアップロードに失敗しました:', error);
-      this.toast.error('標準報酬月額の登録に失敗しました');
+      this.toast.error(error instanceof Error ? error.message : '標準賞与額の登録に失敗しました');
       this.uploadStatus = `アップロードに失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`;
       this.uploadProgress = 0;
       this.csvPreview = [];

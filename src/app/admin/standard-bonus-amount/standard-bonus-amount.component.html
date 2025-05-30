@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-success">
     <div class="container-fluid">
-        <div class="navbar-brand text-white">標準報酬月額</div>
+        <div class="navbar-brand text-white">標準報賞与額</div>
 
         <div class="navbar-brand text-white">
             <button class="btn btn-outline-light me-2" (click)="goToAllEmployeeList()">
@@ -20,7 +20,7 @@
             <div class="row align-items-end px-3">
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label for="paymentDate" class="mb-2">標準報酬月額を検索（デフォルトで最新の標準報酬月額を表示）</label>
+                        <label for="paymentDate" class="mb-2">標準賞与額を検索（デフォルトで最新の標準賞与額を表示）</label>
                         <input type="month" class="form-control" id="paymentDate" [(ngModel)]="selectedPaymentDate">
                     </div>
                 </div>
@@ -35,12 +35,12 @@
                     </button>
                 </div>
                 <div class="col-md-5 d-flex justify-content-end">
-                    <button class="btn btn-outline-success" (click)="goToStandardRemunerationInput()">
-                        <i class="fas fa-plus"></i> 標準報酬月額入力画面へ
+                    <button class="btn btn-outline-success" (click)="goToStandardBonusAmountInput()">
+                        <i class="fas fa-plus"></i> 標準賞与額入力画面へ
                     </button>
                 </div>
             </div>
-            <div class="col-md-12 mt-3">
+          <div class="col-md-12 mt-3">
           <!-- ヘッダー -->
             <div class="table-responsive px-1 pb-3">
                 <table class="table table-bordered table-sm">
@@ -51,14 +51,13 @@
                             <th class="small text-center">社員属性</th>
                             <th class="small text-center">資格情報</th>
                             <th class="small text-center">報酬種類</th>
-                            <th class="small text-center">標準報酬月額</th>
-                            <th class="small text-center">等級</th>
-                            <th class="small text-center">標準報酬月額適用年月</th>
+                            <th class="small text-center">標準賞与額</th>
+                            <th class="small text-center">標準賞与額適用年月</th>
                         </tr>
                     </thead>
                     <tbody>
                         <!-- ローディング表示 -->
-                        <tr *ngIf="!standardRemunerationList || isLoading" >
+                        <tr *ngIf="!standardBonusAmountList || isLoading">
                             <td colspan="12" class="text-center">
                                 <div class="d-flex justify-content-center align-items-center p-3">
                                     <div class="spinner-border text-success" role="status">
@@ -69,20 +68,19 @@
                             </td>
                         </tr>
                         <!-- データがない場合の表示 -->
-                        <tr *ngIf="standardRemunerationList && standardRemunerationList.length === 0">
+                        <tr *ngIf="standardBonusAmountList && standardBonusAmountList.length === 0">
                             <td colspan="12" class="text-center">
                                 データがありません
                             </td>
                         </tr>
                         <!-- データ表示 -->
-                        <tr *ngFor="let standardRemuneration of standardRemunerationList">
+                        <tr *ngFor="let standardRemuneration of standardBonusAmountList">
                             <td class="small text-center">{{ standardRemuneration.employeeId }}</td>
                             <td class="small text-center">{{ standardRemuneration.employeeName }}</td>
                             <td class="small text-center">{{ standardRemuneration.employeeAttribute }}</td>
                             <td class="small text-center">{{ standardRemuneration.qualification }}</td>
                             <td class="small text-center">{{ standardRemuneration.salaryType }}</td>
                             <td class="small text-center">{{ standardRemuneration.standardRemuneration | jpy }}</td>
-                            <td class="small text-center">{{ standardRemuneration.standardRemunerationGrade }}</td>
                             <td class="small text-center">{{ standardRemuneration.standardRemunerationDate }}</td>
                         </tr>
                     </tbody>
@@ -99,102 +97,93 @@
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col">
-                        <h5 class="card-title fs-5 mb-3">標準報酬月額</h5>
+                        <h5 class="card-title fs-5 mb-3">標準賞与額</h5>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-outline-success mb-3" (click)="goToStandardRemunerationInput()">
-                            <i class="fas fa-plus"></i> 標準報酬月額閲覧画面へ
+                        <button class="btn btn-outline-success mb-3" (click)="goToStandardBonusAmountInput()">
+                            <i class="fas fa-plus"></i> 標準賞与額閲覧画面へ
                         </button>
                     </div>
                 </div>
                 <div class="col-md-12">
-                    <form [formGroup]="standardRemunerationForm" (ngSubmit)="onSubmit()">
+                    <form [formGroup]="standardBonusAmountForm" (ngSubmit)="onSubmit()">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label for="employeeId" class="form-label">社員番号</label>
                                 <input type="text" class="form-control" id="employeeId" formControlName="employeeId"
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('employeeId')?.invalid && standardRemunerationForm.get('employeeId')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeId')?.errors?.['required']">
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('employeeId')?.invalid && standardBonusAmountForm.get('employeeId')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeId')?.errors?.['required']">
                                     社員番号は必須です
                                 </div>
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeId')?.errors?.['maxlength']">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeId')?.errors?.['maxlength']">
                                     社員番号は20文字以内で入力してください
                                 </div>
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeId')?.errors?.['pattern']">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeId')?.errors?.['pattern']">
                                     社員番号は半角英数字とハイフンのみ使用可能です
                                 </div>
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeId')?.errors?.['notFound']">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeId')?.errors?.['notFound']">
                                     存在しない社員番号です
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="employeeName" class="form-label">従業員氏名</label>
                                 <input type="text" class="form-control bg-light" id="employeeName" formControlName="employeeName" readonly
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('employeeName')?.invalid && standardRemunerationForm.get('employeeName')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeName')?.errors?.['required']">
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('employeeName')?.invalid && standardBonusAmountForm.get('employeeName')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeName')?.errors?.['required']">
                                     従業員氏名は必須です
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="employeeAttribute" class="form-label">社員属性</label>
                                 <input type="text" class="form-control bg-light" id="employeeAttribute" formControlName="employeeAttribute" readonly
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('employeeAttribute')?.invalid && standardRemunerationForm.get('employeeAttribute')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('employeeAttribute')?.errors?.['required']">
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('employeeAttribute')?.invalid && standardBonusAmountForm.get('employeeAttribute')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('employeeAttribute')?.errors?.['required']">
                                     社員属性は必須です
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="qualification" class="form-label">資格情報</label>
                                 <input type="text" class="form-control bg-light" id="qualification" formControlName="qualification" readonly
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('qualification')?.invalid && standardRemunerationForm.get('qualification')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('qualification')?.errors?.['required']">
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('qualification')?.invalid && standardBonusAmountForm.get('qualification')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('qualification')?.errors?.['required']">
                                     資格情報は必須です
                                 </div>
                             </div>
                         </div>
                         <div class="row mt-4 align-items-end">
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="salaryType" class="form-label">報酬種類</label>
-                                <input type="text" class="form-control bg-light" id="salaryType" formControlName="salaryType" readonly>
+                                <input type="text" class="form-control" id="salaryType" formControlName="salaryType">
                             </div>
                             <div class="col-md-3">
-                                <label for="standardRemuneration" class="form-label">標準報酬月額</label>
-                                <select class="form-select" id="standardRemuneration" formControlName="standardRemuneration"
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('standardRemuneration')?.invalid && standardRemunerationForm.get('standardRemuneration')?.touched}">
-                                    <option value="">選択してください</option>
-                                    <option *ngFor="let grade of gradeTable" [value]="grade.standardMonthlyRemuneration">
-                                        {{ grade.standardMonthlyRemuneration | jpy }}
-                                    </option>
-                                </select>
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('standardRemuneration')?.errors?.['required']">
-                                    標準報酬月額は必須です
+                                <label for="standardBonusAmount" class="form-label">標準賞与額</label>
+                                <input type="text" class="form-control" id="standardBonusAmount" formControlName="standardBonusAmount"
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('standardBonusAmount')?.invalid && standardBonusAmountForm.get('standardBonusAmount')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('standardBonusAmount')?.errors?.['required']">
+                                    標準賞与額は必須です
                                 </div>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="standardRemunerationGrade" class="form-label">等級</label>
-                                <input type="number" class="form-control bg-light" id="standardRemunerationGrade" formControlName="standardRemunerationGrade" readonly
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('standardRemunerationGrade')?.invalid && standardRemunerationForm.get('standardRemunerationGrade')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('standardRemunerationGrade')?.errors?.['required']">
-                                    等級は必須です
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('standardBonusAmount')?.errors?.['pattern']">
+                                    標準賞与額は半角数字で入力してください
+                                </div>
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('standardBonusAmount')?.errors?.['min']">
+                                    標準賞与額は0以上で入力してください
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label for="standardRemunerationDate" class="form-label">標準報酬月額適用年月</label>
-                                <input type="month" class="form-control" id="standardRemunerationDate" formControlName="standardRemunerationDate"
-                                    [ngClass]="{'is-invalid': standardRemunerationForm.get('standardRemunerationDate')?.invalid && standardRemunerationForm.get('standardRemunerationDate')?.touched}">
-                                <div class="invalid-feedback" *ngIf="standardRemunerationForm.get('standardRemunerationDate')?.errors?.['required']">
-                                    標準報酬月額適用年月は必須です
+                                <label for="standardBonusAmountDate" class="form-label">標準賞与額適用年月</label>
+                                <input type="month" class="form-control" id="standardBonusAmountDate" formControlName="standardBonusAmountDate"
+                                    [ngClass]="{'is-invalid': standardBonusAmountForm.get('standardBonusAmountDate')?.invalid && standardBonusAmountForm.get('standardBonusAmountDate')?.touched}">
+                                <div class="invalid-feedback" *ngIf="standardBonusAmountForm.get('standardBonusAmountDate')?.errors?.['required']">
+                                    標準賞与額適用年月は必須です
                                 </div>
                             </div>
-                            <div class="col-md-2 text-end">
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-success btn-sm me-2" [disabled]="!standardRemunerationForm.valid">
-                                        <i class="fas fa-save"></i> 登録
-                                    </button>
-                                    <button type="button" class="btn btn-secondary btn-sm" (click)="goToStandardRemunerationInput()">
-                                        <i class="fas fa-times"></i> キャンセル
-                                    </button>
-                                </div>
+                            <div class="col-md-3 text-end">
+                                <button type="submit" class="btn btn-success me-2" [disabled]="!standardBonusAmountForm.valid">
+                                    <i class="fas fa-save"></i> 登録
+                                </button>
+                                <button type="button" class="btn btn-secondary" (click)="goToStandardBonusAmountInput()">
+                                    <i class="fas fa-times"></i> キャンセル
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -261,9 +250,9 @@
                                                         <td class="small text-center">{{ row.employeeAttribute }}</td>
                                                         <td class="small text-center">{{ row.qualification }}</td>
                                                         <td class="small text-center">{{ row.salaryType }}</td>
-                                                        <td class="small text-center">{{ row.standardRemuneration | jpy }}</td>
-                                                        <td class="small text-center">{{ row.standardRemunerationGrade }}</td>
-                                                        <td class="small text-center">{{ row.standardRemunerationDate }}</td>
+                                                        <td class="small text-center">{{ row.standardBonusAmount | jpy }}</td>
+                                                        <td class="small text-center">{{ row.standardBonusAmountGrade }}</td>
+                                                        <td class="small text-center">{{ row.standardBonusAmountDate }}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>

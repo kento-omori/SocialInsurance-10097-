@@ -27,33 +27,11 @@ export class UserService {
         createdAt: new Date(),
       });
     } else {
-      // 既存データがある場合、未設定のフィールドのみ更新
-      const existingData = existingDoc.data() as EmployeeProfile;
-      const updateData: any = {
+      // 既存データがある場合、更新
+      await updateDoc(employeeRef, {
+        ...employeeProfile,
         updatedAt: new Date()
-      };
-
-      // 未設定のフィールドのみを更新対象に追加
-      if (!existingData.employeeName && employeeProfile.employeeName) {
-        updateData.employeeName = employeeProfile.employeeName;
-      }
-      if (!existingData.employeeAttribute && employeeProfile.employeeAttribute) {
-        updateData.employeeAttribute = employeeProfile.employeeAttribute;
-      }
-      if (!existingData.insuredStatus && employeeProfile.insuredStatus) {
-        updateData.insuredStatus = employeeProfile.insuredStatus;
-      }
-      if (existingData.enrolmentData === undefined && employeeProfile.enrolmentData !== undefined) {
-        updateData.enrolmentData = employeeProfile.enrolmentData;
-      }
-      if (!existingData.employeeEmail && employeeProfile.employeeEmail) {
-        updateData.employeeEmail = employeeProfile.employeeEmail;
-      }
-
-      // 更新対象のフィールドがある場合のみ更新を実行
-      if (Object.keys(updateData).length > 1) { // updatedAt以外のフィールドがある場合
-        await updateDoc(employeeRef, updateData);
-      }
+      });
     }
   }
 
@@ -62,6 +40,10 @@ export class UserService {
     const employeeRef = doc(this.firestore, `companies/${companyId}/employees/${employeeProfile.employeeId}`);
     await updateDoc(employeeRef, {
       enrolmentData: false,
+      retireEra: employeeProfile.retireEra,
+      retireYear: employeeProfile.retireYear,
+      retireMonth: employeeProfile.retireMonth,
+      retireDay: employeeProfile.retireDay,
       retiredAt: new Date()
     });
   }
